@@ -1,0 +1,6 @@
+{
+  "name": "PIJAR SMABA - Pusat Informasi dan Jaringan Belajar Smaba",
+  "description": "PIJAR (Pusat Informasi dan Jaringan Belajar Smaba) - Portal kurikulum terpadu SMA Negeri 1 Batangan dengan integrasi Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
