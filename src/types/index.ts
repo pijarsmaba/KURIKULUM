@@ -131,3 +131,12 @@ export interface Announcement {
   priority: 'Tinggi' | 'Normal';
   author: string;
 }
+
+export interface AcademicSettings {
+  academicYear: string;
+  semester: 'Ganjil' | 'Genap';
+  maxJp: string;
+  curriculumName?: string;
+  uploadDeadline?: string;
+  wakaKurikulumName?: string;
+}

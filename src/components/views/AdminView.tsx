@@ -38,11 +38,13 @@ import {
   Image,
   UploadCloud,
   FileUp,
-  CheckSquare
+  CheckSquare,
+  BarChart3
 } from 'lucide-react';
-import { User, Announcement, PerangkatItem, UserRole, LoginPageConfig } from '../../types';
-import { INITIAL_ANNOUNCEMENTS, SCHOOL_INFO, DEFAULT_LOGIN_PAGE_CONFIG } from '../../data/mockData';
+import { User, Announcement, PerangkatItem, UserRole, LoginPageConfig, AcademicSettings } from '../../types';
+import { INITIAL_ANNOUNCEMENTS, SCHOOL_INFO, DEFAULT_LOGIN_PAGE_CONFIG, DEFAULT_ACADEMIC_SETTINGS } from '../../data/mockData';
 import { SmabaCrestLogo, PijarEmblemLogo } from '../Logos';
+import { AdminSummaryDashboard } from './AdminSummaryDashboard';
 
 interface AdminViewProps {
   currentUser: User | null;
@@ -58,6 +60,11 @@ interface AdminViewProps {
   onDeleteUser?: (userId: string) => void;
   loginConfig?: LoginPageConfig;
   onUpdateLoginConfig?: (config: LoginPageConfig) => void;
+  academicSettings?: AcademicSettings;
+  onUpdateAcademicSettings?: (settings: AcademicSettings) => void;
+  announcements?: Announcement[];
+  onAddAnnouncement?: (announcement: Announcement) => void;
+  onDeleteAnnouncement?: (id: string) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -74,25 +81,100 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onDeleteUser,
   loginConfig = DEFAULT_LOGIN_PAGE_CONFIG,
   onUpdateLoginConfig,
+  academicSettings = DEFAULT_ACADEMIC_SETTINGS,
+  onUpdateAcademicSettings,
+  announcements: announcementsProp,
+  onAddAnnouncement,
+  onDeleteAnnouncement,
 }) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
 
   // Admin Tab Navigation
-  const [adminTab, setAdminTab] = useState<'users' | 'login-design' | 'kurikulum' | 'announcements'>('users');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'users' | 'login-design' | 'kurikulum' | 'announcements'>('dashboard');
 
-  // Announcements
-  const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
+  // Announcements State with Local Persistence
+  const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
+    if (announcementsProp && announcementsProp.length > 0) return announcementsProp;
+    const saved = localStorage.getItem('smaba_announcements');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return INITIAL_ANNOUNCEMENTS;
+      }
+    }
+    return INITIAL_ANNOUNCEMENTS;
+  });
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newPriority, setNewPriority] = useState<'Normal' | 'Tinggi'>('Normal');
+  const [savedAnnouncementMsg, setSavedAnnouncementMsg] = useState(false);
 
-  // General Settings
+  // Sync announcements when prop updates
+  React.useEffect(() => {
+    if (announcementsProp && announcementsProp.length > 0) {
+      setAnnouncements(announcementsProp);
+    }
+  }, [announcementsProp]);
+
+  // Curriculum / Academic Settings State with Local Persistence
   const [savedSettings, setSavedSettings] = useState(false);
-  const [academicYear, setAcademicYear] = useState('2024/2025');
-  const [semester, setSemester] = useState('Genap');
-  const [maxJp, setMaxJp] = useState('40');
+  const [academicYear, setAcademicYear] = useState<string>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved).academicYear || academicSettings.academicYear || '2024/2025';
+      } catch (e) {
+        return academicSettings.academicYear || '2024/2025';
+      }
+    }
+    return academicSettings.academicYear || '2024/2025';
+  });
+  const [semester, setSemester] = useState<'Ganjil' | 'Genap'>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved).semester || academicSettings.semester || 'Genap';
+      } catch (e) {
+        return academicSettings.semester || 'Genap';
+      }
+    }
+    return academicSettings.semester || 'Genap';
+  });
+  const [maxJp, setMaxJp] = useState<string>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved).maxJp || academicSettings.maxJp || '40';
+      } catch (e) {
+        return academicSettings.maxJp || '40';
+      }
+    }
+    return academicSettings.maxJp || '40';
+  });
+  const [curriculumName, setCurriculumName] = useState<string>(() => {
+    return academicSettings.curriculumName || 'Kurikulum Merdeka Mandiri Berbagi';
+  });
+  const [uploadDeadline, setUploadDeadline] = useState<string>(() => {
+    return academicSettings.uploadDeadline || '2025-01-31';
+  });
+  const [wakaKurikulumName, setWakaKurikulumName] = useState<string>(() => {
+    return academicSettings.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.';
+  });
 
-  // Login Page Customization Form State
+  // Sync academic settings when prop updates
+  React.useEffect(() => {
+    if (academicSettings) {
+      setAcademicYear(academicSettings.academicYear || '2024/2025');
+      setSemester(academicSettings.semester || 'Genap');
+      setMaxJp(academicSettings.maxJp || '40');
+      if (academicSettings.curriculumName) setCurriculumName(academicSettings.curriculumName);
+      if (academicSettings.uploadDeadline) setUploadDeadline(academicSettings.uploadDeadline);
+      if (academicSettings.wakaKurikulumName) setWakaKurikulumName(academicSettings.wakaKurikulumName);
+    }
+  }, [academicSettings]);
+
+  // Login Page Customization Form State with local sync
   const [headerTagline, setHeaderTagline] = useState(loginConfig.headerTagline);
   const [headerSchoolName, setHeaderSchoolName] = useState(loginConfig.headerSchoolName);
   const [welcomeTitle, setWelcomeTitle] = useState(loginConfig.welcomeTitle);
@@ -101,6 +183,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [leftLogoUrl, setLeftLogoUrl] = useState<string>(loginConfig.leftLogoUrl || '');
   const [rightLogoUrl, setRightLogoUrl] = useState<string>(loginConfig.rightLogoUrl || '');
   const [savedLoginConfig, setSavedLoginConfig] = useState(false);
+
+  React.useEffect(() => {
+    setHeaderTagline(loginConfig.headerTagline);
+    setHeaderSchoolName(loginConfig.headerSchoolName);
+    setWelcomeTitle(loginConfig.welcomeTitle);
+    setWelcomeSubtitle(loginConfig.welcomeSubtitle);
+    setFooterText(loginConfig.footerText);
+    setLeftLogoUrl(loginConfig.leftLogoUrl || '');
+    setRightLogoUrl(loginConfig.rightLogoUrl || '');
+  }, [loginConfig]);
 
   // User Management State
   const [searchUser, setSearchUser] = useState('');
@@ -152,7 +244,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
     setShowPasswords((prev) => ({ ...prev, [userId]: !prev[userId] }));
   };
 
-  // Upload Logo Handlers
+  // Upload Logo Handlers with Canvas Auto-Compression (ensures logo size < 40KB so localStorage won't exceed quota)
   const handleUploadLogoFile = (e: React.ChangeEvent<HTMLInputElement>, position: 'left' | 'right') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -164,31 +256,71 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const base64Data = event.target?.result as string;
-      if (position === 'left') {
-        setLeftLogoUrl(base64Data);
-      } else {
-        setRightLogoUrl(base64Data);
-      }
+      const rawData = event.target?.result as string;
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 320;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/png');
+          if (position === 'left') {
+            setLeftLogoUrl(compressed);
+          } else {
+            setRightLogoUrl(compressed);
+          }
+        } else {
+          if (position === 'left') setLeftLogoUrl(rawData);
+          else setRightLogoUrl(rawData);
+        }
+      };
+      img.src = rawData;
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleSaveLoginConfig = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onUpdateLoginConfig) {
-      onUpdateLoginConfig({
-        headerTagline,
-        headerSchoolName,
-        welcomeTitle,
-        welcomeSubtitle,
-        footerText,
-        leftLogoUrl,
-        rightLogoUrl,
-      });
-      setSavedLoginConfig(true);
-      setTimeout(() => setSavedLoginConfig(false), 2500);
+    const updatedConfig: LoginPageConfig = {
+      headerTagline: headerTagline.trim(),
+      headerSchoolName: headerSchoolName.trim(),
+      welcomeTitle: welcomeTitle.trim(),
+      welcomeSubtitle: welcomeSubtitle.trim(),
+      footerText: footerText.trim(),
+      leftLogoUrl,
+      rightLogoUrl,
+    };
+
+    // Save directly to localStorage
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(updatedConfig));
+    } catch (err) {
+      console.warn('LocalStorage save failed:', err);
     }
+
+    if (onUpdateLoginConfig) {
+      onUpdateLoginConfig(updatedConfig);
+    }
+
+    setSavedLoginConfig(true);
+    setTimeout(() => setSavedLoginConfig(false), 3500);
   };
 
   // Preset quick fill options
@@ -427,29 +559,81 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const handleAddAnnouncement = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newContent) return;
+    if (!newTitle.trim() || !newContent.trim()) return;
+
+    const todayFormatted = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
 
     const newAnc: Announcement = {
       id: `anc-${Date.now()}`,
-      title: newTitle,
-      content: newContent,
-      date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+      title: newTitle.trim(),
+      content: newContent.trim(),
+      date: todayFormatted,
       priority: newPriority,
       author: currentUser?.name || (currentRole === 'kepsek' ? 'Kepala Sekolah' : 'Waka Kurikulum'),
     };
 
-    setAnnouncements([newAnc, ...announcements]);
+    const updated = [newAnc, ...announcements];
+    setAnnouncements(updated);
+
+    try {
+      localStorage.setItem('smaba_announcements', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('LocalStorage save failed:', err);
+    }
+
+    if (onAddAnnouncement) {
+      onAddAnnouncement(newAnc);
+    }
+
     setNewTitle('');
     setNewContent('');
+    setSavedAnnouncementMsg(true);
+    setTimeout(() => setSavedAnnouncementMsg(false), 3500);
   };
 
   const handleDeleteAnnouncement = (id: string) => {
-    setAnnouncements(announcements.filter((a) => a.id !== id));
+    const updated = announcements.filter((a) => a.id !== id);
+    setAnnouncements(updated);
+
+    try {
+      localStorage.setItem('smaba_announcements', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('LocalStorage save failed:', err);
+    }
+
+    if (onDeleteAnnouncement) {
+      onDeleteAnnouncement(id);
+    }
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const updatedSettings: AcademicSettings = {
+      academicYear: academicYear.trim(),
+      semester,
+      maxJp: maxJp.trim(),
+      curriculumName: curriculumName.trim(),
+      uploadDeadline,
+      wakaKurikulumName: wakaKurikulumName.trim(),
+    };
+
+    try {
+      localStorage.setItem('smaba_academic_settings', JSON.stringify(updatedSettings));
+    } catch (err) {
+      console.warn('LocalStorage save failed:', err);
+    }
+
+    if (onUpdateAcademicSettings) {
+      onUpdateAcademicSettings(updatedSettings);
+    }
+
     setSavedSettings(true);
-    setTimeout(() => setSavedSettings(false), 2500);
+    setTimeout(() => setSavedSettings(false), 3500);
   };
 
   const handleSaveDirectives = () => {
@@ -613,6 +797,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Live Recharts Summary Dashboard for Principal */}
+        <div className="pt-2">
+          <AdminSummaryDashboard
+            perangkatList={perangkatList}
+            usersList={usersList}
+            academicSettings={academicSettings}
+          />
+        </div>
       </div>
     );
   }
@@ -633,7 +826,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               Informasi Kurikulum untuk Dewan Guru
             </h2>
             <p className="text-slate-400 text-xs sm:text-sm">
-              Pengumuman resmi dari Waka Kurikulum dan Kepala Sekolah SMA Negeri 1 Batangan untuk dewan guru dan wali kelas.
+              Pengumuman resmi dari Waka Kurikulum ({academicSettings?.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.'}) dan Kepala Sekolah untuk dewan guru SMA Negeri 1 Batangan.
             </p>
           </div>
 
@@ -651,7 +844,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
               <Bell className="w-4 h-4 text-blue-600" />
-              <span>Pengumuman Aktif Semester Genap TA 2024/2025</span>
+              <span>Pengumuman Aktif Semester {academicSettings?.semester || semester} TA {academicSettings?.academicYear || academicYear}</span>
             </h3>
             <span className="text-xs text-slate-400">{announcements.length} Pengumuman</span>
           </div>
@@ -731,6 +924,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
       {/* Admin Feature Tabs */}
       <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto gap-1">
         <button
+          onClick={() => setAdminTab('dashboard')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'dashboard'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>Dashboard Ringkasan & Statistik</span>
+        </button>
+
+        <button
           onClick={() => setAdminTab('users')}
           className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'users'
@@ -778,6 +983,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <span>Siaran Pengumuman</span>
         </button>
       </div>
+
+      {/* =============================================================
+          TAB 0: DASHBOARD RINGKASAN & STATISTIK PENGGUNAAN APLIKASI
+      ============================================================= */}
+      {adminTab === 'dashboard' && (
+        <AdminSummaryDashboard
+          perangkatList={perangkatList}
+          usersList={usersList}
+          onNavigateToTab={(tab) => setAdminTab(tab)}
+          academicSettings={academicSettings}
+        />
+      )}
 
       {/* =============================================================
           TAB 1: KELOLA PENGGUNA & PASSWORD + IMPORT EXCEL
@@ -1000,6 +1217,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </span>
               )}
             </div>
+
+            {savedLoginConfig && (
+              <div className="p-3.5 bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-3 shadow-xs animate-fade-in">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div>
+                  <div className="font-black">Perubahan Desain, Logo & Teks Login Berhasil Disimpan!</div>
+                  <div className="text-[11px] font-medium text-emerald-700">Identitas dan tampilan halaman login telah diperbarui dan langsung aktif.</div>
+                </div>
+              </div>
+            )}
 
             {/* SECTION 1: UPLOAD / EDIT LOGOS (Fasilitas Upload Logo Baru) */}
             <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
@@ -1298,66 +1525,187 @@ export const AdminView: React.FC<AdminViewProps> = ({
           TAB 3: PENGATURAN KURIKULUM
       ============================================================= */}
       {adminTab === 'kurikulum' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Settings className="w-5 h-5 text-slate-700" />
-              <h3 className="font-bold text-slate-900 text-base">Konfigurasi Akademik</h3>
+        <div className="space-y-5">
+          {savedSettings && (
+            <div className="p-4 bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-3 shadow-xs animate-fade-in">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <div className="font-black text-sm">Pengaturan Kurikulum Berhasil Disimpan ke Sistem!</div>
+                <div className="text-[11px] font-medium text-emerald-700">Tahun ajaran, semester aktif, batas JP, dan parameter akademik telah diperbarui secara permanen.</div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Form Editor Kurikulum */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-slate-700" />
+                  <h3 className="font-bold text-slate-900 text-base">Konfigurasi Parameter Kurikulum</h3>
+                </div>
+                {savedSettings && (
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Tersimpan</span>
+                  </span>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveSettings} className="space-y-4 text-xs sm:text-sm">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    1. Tahun Pelajaran
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={academicYear}
+                    onChange={(e) => setAcademicYear(e.target.value)}
+                    placeholder="Contoh: 2024/2025"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    2. Semester Aktif
+                  </label>
+                  <select
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-bold text-slate-800"
+                  >
+                    <option value="Ganjil">Semester Ganjil</option>
+                    <option value="Genap">Semester Genap</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    3. Beban Jam Maksimal Guru (JP per Minggu)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={maxJp}
+                    onChange={(e) => setMaxJp(e.target.value)}
+                    placeholder="Contoh: 40"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    4. Nama Model Kurikulum
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={curriculumName}
+                    onChange={(e) => setCurriculumName(e.target.value)}
+                    placeholder="Contoh: Kurikulum Merdeka Mandiri Berbagi"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    5. Batas Akhir Unggah Perangkat Ajar
+                  </label>
+                  <input
+                    type="date"
+                    value={uploadDeadline}
+                    onChange={(e) => setUploadDeadline(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
+                    6. Nama Waka Kurikulum
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={wakaKurikulumName}
+                    onChange={(e) => setWakaKurikulumName(e.target.value)}
+                    placeholder="Contoh: Supriyanto, S.Pd., M.Si."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full py-3 px-4 bg-[#0c397b] hover:bg-[#082855] text-white rounded-xl text-xs sm:text-sm font-black tracking-wider uppercase shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Simpan Pengaturan Kurikulum</span>
+                  </button>
+                </div>
+              </form>
             </div>
 
-            {savedSettings && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Pengaturan berhasil disimpan ke sistem!</span>
-              </div>
-            )}
+            {/* Right Column: Ringkasan Status Kurikulum */}
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-bold text-slate-900 text-base">Status Kurikulum Sekolah Aktif</h3>
+                </div>
 
-            <div className="space-y-4 text-xs sm:text-sm">
-              <div>
-                <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
-                  Tahun Pelajaran
-                </label>
-                <input
-                  type="text"
-                  value={academicYear}
-                  onChange={(e) => setAcademicYear(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
-                />
+                <div className="space-y-3">
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">Tahun Ajaran & Semester:</span>
+                    <span className="text-xs font-black text-[#0c397b]">
+                      {academicYear} • {semester}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">Model Kurikulum:</span>
+                    <span className="text-xs font-bold text-emerald-700">{curriculumName}</span>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">Maksimal Beban Mengajar:</span>
+                    <span className="text-xs font-bold text-slate-800">{maxJp} Jam Pelajaran (JP)</span>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">Batas Akhir Unggah:</span>
+                    <span className="text-xs font-bold text-amber-700">{uploadDeadline || 'Belum diatur'}</span>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">Waka Kurikulum:</span>
+                    <span className="text-xs font-bold text-slate-900">{wakaKurikulumName}</span>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
-                  Semester Aktif
-                </label>
-                <select
-                  value={semester}
-                  onChange={(e) => setSemester(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
+              {/* Template Cepat */}
+              <div className="pt-3 border-t border-slate-200 space-y-2">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Aksi Cepat:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAcademicYear('2024/2025');
+                    setSemester('Genap');
+                    setMaxJp('40');
+                    setCurriculumName('Kurikulum Merdeka Mandiri Berbagi');
+                    setUploadDeadline('2025-01-31');
+                    setWakaKurikulumName('Supriyanto, S.Pd., M.Si.');
+                  }}
+                  className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5"
                 >
-                  <option value="Ganjil">Semester Ganjil</option>
-                  <option value="Genap">Semester Genap</option>
-                </select>
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Pulihkan ke Standar SMABA</span>
+                </button>
               </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
-                  Beban Jam Maksimal Guru (JP)
-                </label>
-                <input
-                  type="number"
-                  value={maxJp}
-                  onChange={(e) => setMaxJp(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
-                />
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-2.5 px-4 bg-[#0c397b] hover:bg-[#082855] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-xs"
-              >
-                <Save className="w-4 h-4" />
-                <span>Simpan Konfigurasi</span>
-              </button>
             </div>
           </div>
         </div>
@@ -1368,6 +1716,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
       ============================================================= */}
       {adminTab === 'announcements' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          {savedAnnouncementMsg && (
+            <div className="p-4 bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-3 shadow-xs animate-fade-in">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <div className="font-black text-sm">Siaran Pengumuman Baru Berhasil Disimpan & Diterbitkan!</div>
+                <div className="text-[11px] font-medium text-emerald-700">Pengumuman kini tersimpan di sistem dan dapat langsung dibaca oleh seluruh dewan guru.</div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-blue-600" />
@@ -1388,15 +1746,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Judul pengumuman..."
-                className="sm:col-span-3 px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="sm:col-span-3 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               />
               <select
                 value={newPriority}
                 onChange={(e) => setNewPriority(e.target.value as any)}
                 className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700"
               >
-                <option value="Normal">Normal</option>
-                <option value="Tinggi">Penting</option>
+                <option value="Normal">Prioritas Normal</option>
+                <option value="Tinggi">Prioritas Penting</option>
               </select>
             </div>
 
@@ -1406,16 +1764,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
               placeholder="Isi teks pengumuman untuk dewan guru..."
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Siarkan Pengumuman</span>
+                <span>Simpan & Siarkan Pengumuman</span>
               </button>
             </div>
           </form>
@@ -1445,9 +1803,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleDeleteAnnouncement(anc.id)}
                   title="Hapus Pengumuman"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

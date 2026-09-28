@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MenuKey, User as CurrentUser, PerangkatItem, UserRole, LoginPageConfig } from './types';
+import { MenuKey, User as CurrentUser, PerangkatItem, UserRole, LoginPageConfig, Announcement, AcademicSettings } from './types';
 import {
   DEFAULT_LOGIN_PAGE_CONFIG,
+  DEFAULT_ACADEMIC_SETTINGS,
+  INITIAL_ANNOUNCEMENTS,
   DEMO_USERS,
   INITIAL_PERANGKAT,
   TEACHER_PROGRESS_DATA,
@@ -80,6 +82,32 @@ export default function App() {
     return DEFAULT_LOGIN_PAGE_CONFIG;
   });
 
+  // Persistent Academic Settings (Konfigurasi Kurikulum)
+  const [academicSettings, setAcademicSettings] = useState<AcademicSettings>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_ACADEMIC_SETTINGS;
+      }
+    }
+    return DEFAULT_ACADEMIC_SETTINGS;
+  });
+
+  // Persistent Announcements (Siaran Pengumuman)
+  const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
+    const saved = localStorage.getItem('smaba_announcements');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return INITIAL_ANNOUNCEMENTS;
+      }
+    }
+    return INITIAL_ANNOUNCEMENTS;
+  });
+
   const [perangkatList, setPerangkatList] = useState<PerangkatItem[]>(() => {
     const saved = localStorage.getItem('smaba_perangkat_list');
     if (saved) {
@@ -129,8 +157,28 @@ export default function App() {
   }, [usersList]);
 
   useEffect(() => {
-    localStorage.setItem('smaba_login_config', JSON.stringify(loginConfig));
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(loginConfig));
+    } catch (e) {
+      console.warn('Error saving login config to storage:', e);
+    }
   }, [loginConfig]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smaba_academic_settings', JSON.stringify(academicSettings));
+    } catch (e) {
+      console.warn('Error saving academic settings to storage:', e);
+    }
+  }, [academicSettings]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smaba_announcements', JSON.stringify(announcements));
+    } catch (e) {
+      console.warn('Error saving announcements to storage:', e);
+    }
+  }, [announcements]);
 
   // User Management Handlers (Admin)
   const handleAddUser = (newUser: CurrentUser) => {
@@ -177,7 +225,44 @@ export default function App() {
 
   const handleUpdateLoginConfig = (newConfig: LoginPageConfig) => {
     setLoginConfig(newConfig);
-    localStorage.setItem('smaba_login_config', JSON.stringify(newConfig));
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(newConfig));
+    } catch (e) {
+      console.warn('Error saving login config to storage:', e);
+    }
+  };
+
+  const handleUpdateAcademicSettings = (newSettings: AcademicSettings) => {
+    setAcademicSettings(newSettings);
+    try {
+      localStorage.setItem('smaba_academic_settings', JSON.stringify(newSettings));
+    } catch (e) {
+      console.warn('Error saving academic settings to storage:', e);
+    }
+  };
+
+  const handleAddAnnouncement = (newAnc: Announcement) => {
+    setAnnouncements((prev) => {
+      const updated = [newAnc, ...prev];
+      try {
+        localStorage.setItem('smaba_announcements', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving announcements to storage:', e);
+      }
+      return updated;
+    });
+  };
+
+  const handleDeleteAnnouncement = (id: string) => {
+    setAnnouncements((prev) => {
+      const updated = prev.filter((a) => a.id !== id);
+      try {
+        localStorage.setItem('smaba_announcements', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving announcements to storage:', e);
+      }
+      return updated;
+    });
   };
 
   const handleAddNewPerangkat = (newItem: PerangkatItem) => {
@@ -402,6 +487,11 @@ export default function App() {
             onDeleteUser={handleDeleteUser}
             loginConfig={loginConfig}
             onUpdateLoginConfig={handleUpdateLoginConfig}
+            academicSettings={academicSettings}
+            onUpdateAcademicSettings={handleUpdateAcademicSettings}
+            announcements={announcements}
+            onAddAnnouncement={handleAddAnnouncement}
+            onDeleteAnnouncement={handleDeleteAnnouncement}
           />
         )}
       </main>

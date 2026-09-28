@@ -7,8 +7,18 @@ import {
   User,
   UserRole,
   Announcement,
-  LoginPageConfig
+  LoginPageConfig,
+  AcademicSettings
 } from '../types';
+
+export const DEFAULT_ACADEMIC_SETTINGS: AcademicSettings = {
+  academicYear: '2024/2025',
+  semester: 'Genap',
+  maxJp: '40',
+  curriculumName: 'Kurikulum Merdeka Mandiri Berbagi',
+  uploadDeadline: '2025-01-31',
+  wakaKurikulumName: 'Supriyanto, S.Pd., M.Si.',
+};
 
 export const DEFAULT_LOGIN_PAGE_CONFIG: LoginPageConfig = {
   headerTagline: 'PUSAT INFORMASI DAN JARINGAN BELAJAR',

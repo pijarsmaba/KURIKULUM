@@ -29,7 +29,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { MENU_ITEMS, ROLE_MENU_CONFIGS, ROLE_DETAILS, DEMO_USERS, SCHOOL_INFO } from '../data/mockData';
-import { MenuKey, User as CurrentUser, UserRole, MenuItemConfig } from '../types';
+import { MenuKey, User as CurrentUser, UserRole, MenuItemConfig, AcademicSettings, Announcement } from '../types';
 import { User as FirebaseUser } from 'firebase/auth';
 
 interface HomeMenuCardProps {
@@ -41,6 +41,8 @@ interface HomeMenuCardProps {
   onOpenSheetsModal: () => void;
   onSwitchUserRole?: (role: UserRole) => void;
   onSelectDemoUser?: (user: CurrentUser) => void;
+  academicSettings?: AcademicSettings;
+  announcements?: Announcement[];
 }
 
 export const HomeMenuCard: React.FC<HomeMenuCardProps> = ({
@@ -52,11 +54,29 @@ export const HomeMenuCard: React.FC<HomeMenuCardProps> = ({
   onOpenSheetsModal,
   onSwitchUserRole,
   onSelectDemoUser,
+  academicSettings,
+  announcements = [],
 }) => {
   const [viewMode, setViewMode] = useState<'role' | 'all'>('role');
 
   const currentRole: UserRole = currentUser?.role || 'guru';
   const roleConfig = ROLE_DETAILS[currentRole];
+
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeCurriculum = academicSettings?.curriculumName || 'Kurikulum Merdeka';
+  const activeWaka = academicSettings?.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.';
+  const activeDeadline = academicSettings?.uploadDeadline || '2025-01-31';
+  const activeMaxJp = academicSettings?.maxJp || '40';
+
+  // Helper to dynamically adapt menu texts according to academic settings
+  const formatText = (text?: string) => {
+    if (!text) return '';
+    return text
+      .replace(/semester genap/gi, `Semester ${activeSemester}`)
+      .replace(/semester ganjil/gi, `Semester ${activeSemester}`)
+      .replace(/2024\/2025/g, activeYear);
+  };
 
   // Pick menu items based on active role or all
   const activeMenuItems: MenuItemConfig[] =
