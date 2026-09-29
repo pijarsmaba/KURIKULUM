@@ -1,46 +1,24 @@
 import React, { useState } from 'react';
 import { BookOpen, FileText, Download, CheckCircle, ChevronRight, School, Compass, Target, Users, Sparkles, Eye } from 'lucide-react';
-import { SCHOOL_INFO } from '../../data/mockData';
+import { SCHOOL_INFO, INITIAL_KOSP_DOCUMENT } from '../../data/mockData';
+import { AcademicSettings, KospDocumentInfo } from '../../types';
 
 interface KospViewProps {
   onOpenDocument: (title: string, category: string, content?: string) => void;
+  academicSettings?: AcademicSettings;
+  kospData?: KospDocumentInfo;
 }
 
-export const KospView: React.FC<KospViewProps> = ({ onOpenDocument }) => {
+export const KospView: React.FC<KospViewProps> = ({
+  onOpenDocument,
+  academicSettings,
+  kospData = INITIAL_KOSP_DOCUMENT,
+}) => {
   const [activeTab, setActiveTab] = useState<'karakteristik' | 'visi-misi' | 'pengorganisasian' | 'bab'>('karakteristik');
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeCurriculum = academicSettings?.curriculumName || 'Kurikulum Merdeka';
 
-  const chapters = [
-    {
-      no: 'BAB I',
-      title: 'Karakteristik Satuan Pendidikan',
-      pages: 'Halaman 1 - 24',
-      desc: 'Analisis konteks lingkungan pesisir pantai & sentra garam Batangan Kab. Pati, peta sosiokultural siswa, dan kemitraan masyarakat.',
-    },
-    {
-      no: 'BAB II',
-      title: 'Visi, Misi, dan Tujuan Satuan Pendidikan',
-      pages: 'Halaman 25 - 38',
-      desc: 'Rumusan Visi SMABA Berkarakter, Berprestasi, Berwawasan Lingkungan, serta sasaran strategis jangka pendek & menengah.',
-    },
-    {
-      no: 'BAB III',
-      title: 'Pengorganisasian Pembelajaran',
-      pages: 'Halaman 39 - 82',
-      desc: 'Intrakurikuler (Fase E & F), Kokurikuler P5 (3 Tema Utama), Ekstrakurikuler Wajib Pramuka & Pilihan, serta Program Pembiasaan.',
-    },
-    {
-      no: 'BAB IV',
-      title: 'Perencanaan Pembelajaran & Asesmen',
-      pages: 'Halaman 83 - 120',
-      desc: 'Alur Tujuan Pembelajaran (ATP), Modul Ajar berdiferensiasi, Asesmen Diagnostik, Formatif, Sumatif (ASTS, ASAS, ASAT, ASAJ).',
-    },
-    {
-      no: 'BAB V',
-      title: 'Pendampingan, Evaluasi, dan Pengembangan Profesional',
-      pages: 'Halaman 121 - 145',
-      desc: 'Supervisi akademik Kepala Sekolah, Komunitas Belajar (Kombel) SMABA, evaluasi kurikulum berkala per semester.',
-    },
-  ];
+  const chapters = kospData.chapters || INITIAL_KOSP_DOCUMENT.chapters;
 
   return (
     <div className="space-y-6">
@@ -51,7 +29,7 @@ export const KospView: React.FC<KospViewProps> = ({ onOpenDocument }) => {
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-400/30">
               <Sparkles className="w-3.5 h-3.5" />
-              Kurikulum Merdeka 2024/2025
+              {activeCurriculum} TA {activeYear}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               KOSP SMA Negeri 1 Batangan
@@ -60,11 +38,19 @@ export const KospView: React.FC<KospViewProps> = ({ onOpenDocument }) => {
               Kurikulum Operasional Satuan Pendidikan (KOSP) disusun sebagai panduan operasional pembelajaran yang berpusat pada murid, mengembangkan potensi kearifan lokal Pati, dan mewujudkan Profil Pelajar Pancasila.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-blue-200">
-              <span>SK Pengesahan: No. 421.3/219/2024</span>
+              <span>SK Pengesahan: {kospData.skPengesahan || 'No. 421.3/219/2024'}</span>
               <span>•</span>
               <span>Terakreditasi A (Unggul)</span>
               <span>•</span>
               <span>NPSN: 20339023</span>
+              {kospData.fileName && (
+                <>
+                  <span>•</span>
+                  <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono text-[11px]">
+                    Berkas: {kospData.fileName}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2.5">

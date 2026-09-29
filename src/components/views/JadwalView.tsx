@@ -13,14 +13,26 @@ import {
   Calendar,
   AlertCircle
 } from 'lucide-react';
-import { User as CurrentUser, UserRole } from '../../types';
+import { User as CurrentUser, UserRole, AcademicSettings, ScheduleItem, PiketItem } from '../../types';
+import { INITIAL_SCHEDULES, INITIAL_PIKET } from '../../data/mockData';
 
 interface JadwalViewProps {
   currentUser?: CurrentUser | null;
+  academicSettings?: AcademicSettings;
+  schedulesList?: ScheduleItem[];
+  piketList?: PiketItem[];
 }
 
-export const JadwalView: React.FC<JadwalViewProps> = ({ currentUser }) => {
+export const JadwalView: React.FC<JadwalViewProps> = ({
+  currentUser,
+  academicSettings,
+  schedulesList = INITIAL_SCHEDULES,
+  piketList = INITIAL_PIKET,
+}) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeMaxJp = academicSettings?.maxJp || '40';
 
   const [activeTab, setActiveTab] = useState<'saya' | 'kelas' | 'guru' | 'piket'>(
     currentRole === 'guru' ? 'saya' : 'kelas'
@@ -29,90 +41,17 @@ export const JadwalView: React.FC<JadwalViewProps> = ({ currentUser }) => {
   const [selectedDay, setSelectedDay] = useState('Senin');
   const [searchGuru, setSearchGuru] = useState('');
 
-  const classList = ['X-1', 'X-2', 'X-3', 'X-4', 'XI-1', 'XI-2', 'XI-3', 'XII-1', 'XII-2', 'XII-3'];
+  // Extract distinct classes from schedulesList if available
+  const dynamicClasses = Array.from(new Set(schedulesList.map((s) => s.kelas))).filter(Boolean);
+  const classList = dynamicClasses.length > 0 ? dynamicClasses : ['X-1', 'X-2', 'X-3', 'X-4', 'XI-1', 'XI-2', 'XI-3', 'XII-1', 'XII-2', 'XII-3'];
   const dayList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
-  const scheduleDataKelas: Record<string, { jam: string; waktu: string; mapel: string; guru: string; ruang: string }[]> = {
-    Senin: [
-      { jam: '0', waktu: '06.45 - 07.30', mapel: 'Upacara Bendera / Apel Pagi', guru: 'Seluruh Pembina & Wali Kelas', ruang: 'Lapangan Utama' },
-      { jam: '1 - 2', waktu: '07.30 - 09.00', mapel: 'Pendidikan Agama & Budi Pekerti', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'R. 101' },
-      { jam: '3 - 4', waktu: '09.00 - 10.30', mapel: 'Bahasa Indonesia', guru: 'Dra. Hj. Siti Rahayu, M.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 1', waktu: '10.30 - 10.50', mapel: 'Istirahat Pertama & Sholat Dhuha', guru: '-', ruang: 'Masjid SMABA' },
-      { jam: '5 - 6', waktu: '10.50 - 12.20', mapel: 'Matematika Umum', guru: 'Bambang Triyono, S.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 2', waktu: '12.20 - 13.00', mapel: 'Istirahat Kedua & Sholat Dhuhur Berjamaah', guru: '-', ruang: 'Masjid SMABA' },
-      { jam: '7 - 8', waktu: '13.00 - 14.30', mapel: 'Informatika', guru: 'Agus Wibowo, S.Kom.', ruang: 'Lab Komputer 1' },
-      { jam: '9', waktu: '14.30 - 15.15', mapel: 'Bimbingan Konseling (BK)', guru: 'Rina Kusuma Dewi, S.Pd.', ruang: 'R. 101' },
-    ],
-    Selasa: [
-      { jam: '0', waktu: '06.45 - 07.15', mapel: 'Gerakan Literasi Sekolah / Doa Pagi', guru: 'Wali Kelas X-1', ruang: 'R. 101' },
-      { jam: '1 - 3', waktu: '07.15 - 09.30', mapel: 'Fisika (IPA)', guru: 'Supriyanto, S.Pd., M.Si.', ruang: 'Lab Fisika' },
-      { jam: '4 - 5', waktu: '09.30 - 11.00', mapel: 'Bahasa Inggris', guru: 'Farida Arisanti, S.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 1', waktu: '11.00 - 11.20', mapel: 'Istirahat & Kudapan', guru: '-', ruang: 'Kantin Sekolah' },
-      { jam: '6 - 7', waktu: '11.20 - 12.50', mapel: 'Biologi (IPA)', guru: 'Tri Astuti, S.Pd.', ruang: 'Lab Biologi' },
-      { jam: 'Ist 2', waktu: '12.50 - 13.30', mapel: 'Sholat Dhuhur', guru: '-', ruang: 'Masjid SMABA' },
-      { jam: '8 - 9', waktu: '13.30 - 15.00', mapel: 'Seni Budaya', guru: 'Dewi Anggraeni, S.Pd.', ruang: 'R. Musik' },
-    ],
-    Rabu: [
-      { jam: '0', waktu: '06.45 - 07.15', mapel: 'Senam Pagi Kesegaran Jasmani', guru: 'M. Dian Pratama, S.Pd.', ruang: 'Lapangan' },
-      { jam: '1 - 3', waktu: '07.15 - 09.30', mapel: 'PJOK', guru: 'M. Dian Pratama, S.Pd.', ruang: 'Lapangan Olahraga' },
-      { jam: '4 - 5', waktu: '09.30 - 11.00', mapel: 'Kimia (IPA)', guru: 'Nurul Hidayati, S.Si., M.Pd.', ruang: 'Lab Kimia' },
-      { jam: 'Ist 1', waktu: '11.00 - 11.20', mapel: 'Istirahat Pertama', guru: '-', ruang: 'Kantin' },
-      { jam: '6 - 7', waktu: '11.20 - 12.50', mapel: 'Pendidikan Pancasila', guru: 'Hery Santoso, S.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 2', waktu: '12.50 - 13.30', mapel: 'Sholat Dhuhur Berjamaah', guru: '-', ruang: 'Masjid' },
-      { jam: '8 - 9', waktu: '13.30 - 15.00', mapel: 'Muatan Lokal (Bahasa Jawa)', guru: 'Sri Wahyuningsih, S.Pd.', ruang: 'R. 101' },
-    ],
-    Kamis: [
-      { jam: '0', waktu: '06.45 - 07.15', mapel: 'Asmaul Husna & Tadarus Al-Qur\'an', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'R. 101' },
-      { jam: '1 - 2', waktu: '07.15 - 08.45', mapel: 'Sosiologi (IPS)', guru: 'Drs. Joko Prasetyo', ruang: 'R. 101' },
-      { jam: '3 - 4', waktu: '08.45 - 10.15', mapel: 'Ekonomi (IPS)', guru: 'Endang Sulistyowati, S.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 1', waktu: '10.15 - 10.35', mapel: 'Istirahat', guru: '-', ruang: 'Kantin' },
-      { jam: '5 - 6', waktu: '10.35 - 12.05', mapel: 'Geografi (IPS)', guru: 'Sunardi, S.Pd.', ruang: 'R. 101' },
-      { jam: 'Ist 2', waktu: '12.05 - 12.45', mapel: 'Sholat Dhuhur', guru: '-', ruang: 'Masjid' },
-      { jam: '7 - 8', waktu: '12.45 - 14.15', mapel: 'Sejarah Indonesia', guru: 'Budi Raharjo, S.Pd.', ruang: 'R. 101' },
-      { jam: '9', waktu: '14.15 - 15.00', mapel: 'Pendampingan Karakter', guru: 'Wali Kelas', ruang: 'R. 101' },
-    ],
-    Jumat: [
-      { jam: '0', waktu: '06.45 - 07.15', mapel: 'Jumat Bersih & Budaya Adiwiyata', guru: 'Tim Adiwiyata SMABA', ruang: 'Area Kelas' },
-      { jam: '1 - 4', waktu: '07.15 - 10.15', mapel: 'Projek Penguatan Profil Pelajar Pancasila (P5)', guru: 'Fasilitator P5', ruang: 'Aula SMABA' },
-      { jam: 'Ist', waktu: '10.15 - 10.35', mapel: 'Istirahat', guru: '-', ruang: 'Kantin' },
-      { jam: '5 - 6', waktu: '10.35 - 11.45', mapel: 'Lanjutan Pembahasan Projek P5', guru: 'Fasilitator P5', ruang: 'Aula SMABA' },
-      { jam: 'Sholat', waktu: '11.45 - 13.00', mapel: 'Persiapan & Sholat Jumat Berjamaah', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'Masjid' },
-      { jam: '7 - 8', waktu: '13.00 - 14.30', mapel: 'Ekstrakurikuler Wajib Kepramukaan', guru: 'Pembina Pramuka', ruang: 'Lapangan Utama' },
-    ],
-  };
+  // Dynamic filter for selected class and day
+  const filteredScheduleItems = schedulesList.filter(
+    (item) => item.kelas === selectedClass && item.hari === selectedDay
+  );
 
-  const piketSchedule = [
-    {
-      hari: 'Senin',
-      koordinator: 'Dra. Hj. Siti Rahayu, M.Pd.',
-      anggota: ['Bambang Triyono, S.Pd.', 'Ahmad Faiz, S.Pd.I.', 'Farida Arisanti, S.Pd.'],
-      tugasUtama: 'Pemeriksaan ketertiban gerbang pagi (06.30 - 07.00), absensi KBM jam 1-4, & penanganan dispensasi siswa.',
-    },
-    {
-      hari: 'Selasa',
-      koordinator: 'Supriyanto, S.Pd., M.Si.',
-      anggota: ['Tri Astuti, S.Pd.', 'Nurul Hidayati, S.Si.', 'Agus Wibowo, S.Kom.'],
-      tugasUtama: 'Monitoring ketertiban laboratorium IPA, rekap keterlambatan kelas, & koordinasi guru pengganti.',
-    },
-    {
-      hari: 'Rabu',
-      koordinator: 'M. Dian Pratama, S.Pd.',
-      anggota: ['Hery Santoso, S.Pd.', 'Sri Wahyuningsih, S.Pd.', 'Dewi Anggraeni, S.Pd.'],
-      tugasUtama: 'Pengawasan area lapangan olahraga saat senam pagi & patroli ketertiban lingkungan kantin saat istirahat.',
-    },
-    {
-      hari: 'Kamis',
-      koordinator: 'Drs. Joko Prasetyo',
-      anggota: ['Endang Sulistyowati, S.Pd.', 'Sunardi, S.Pd.', 'Budi Raharjo, S.Pd.'],
-      tugasUtama: 'Pemeriksaan kebersihan kelas Adiwiyata & piket literasi perpustakaan sekolah.',
-    },
-    {
-      hari: 'Jumat',
-      koordinator: 'Ahmad Faiz, S.Pd.I.',
-      anggota: ['Rina Kusuma Dewi, S.Pd.', 'Tim Guru Pembina Ekstrakurikuler'],
-      tugasUtama: 'Monitoring kesiapan Sholat Jumat berjamaah di Masjid SMABA & pendampingan kegiatan Pramuka sore.',
-    },
-  ];
+  const piketSchedule = piketList;
 
   return (
     <div className="space-y-6">
@@ -131,7 +70,7 @@ export const JadwalView: React.FC<JadwalViewProps> = ({ currentUser }) => {
               : 'Jadwal Guru, Kelas, dan Piket Harian'}
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Tahun Pelajaran 2024/2025 Semester Genap • SMA Negeri 1 Batangan
+            Tahun Pelajaran {activeYear} Semester {activeSemester} • Beban Maksimal {activeMaxJp} JP/Pekan • SMA Negeri 1 Batangan
           </p>
         </div>
 
@@ -336,28 +275,36 @@ export const JadwalView: React.FC<JadwalViewProps> = ({ currentUser }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {(scheduleDataKelas[selectedDay] || []).map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className={
-                        row.mapel.includes('Istirahat') || row.mapel.includes('Sholat')
-                          ? 'bg-amber-50/50 text-amber-900 italic'
-                          : row.jam === '0'
-                          ? 'bg-blue-50/40 text-blue-950'
-                          : 'hover:bg-slate-50'
-                      }
-                    >
-                      <td className="py-3 px-4 text-center font-bold text-slate-600">{row.jam}</td>
-                      <td className="py-3 px-4 font-mono text-xs text-slate-600 font-medium">{row.waktu}</td>
-                      <td className="py-3 px-4 font-bold text-slate-900">{row.mapel}</td>
-                      <td className="py-3 px-4 text-slate-700 font-medium">{row.guru}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-xs">
-                          {row.ruang}
-                        </span>
+                  {filteredScheduleItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-slate-400 text-xs sm:text-sm">
+                        Belum ada jadwal untuk kelas {selectedClass} pada hari {selectedDay}. Admin dapat menambahkannya di panel Admin.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredScheduleItems.map((row) => (
+                      <tr
+                        key={row.id}
+                        className={
+                          row.mapel.includes('Istirahat') || row.mapel.includes('Sholat')
+                            ? 'bg-amber-50/50 text-amber-900 italic'
+                            : row.jam === '0'
+                            ? 'bg-blue-50/40 text-blue-950'
+                            : 'hover:bg-slate-50'
+                        }
+                      >
+                        <td className="py-3 px-4 text-center font-bold text-slate-600">{row.jam}</td>
+                        <td className="py-3 px-4 font-mono text-xs text-slate-600 font-medium">{row.waktu}</td>
+                        <td className="py-3 px-4 font-bold text-slate-900">{row.mapel}</td>
+                        <td className="py-3 px-4 text-slate-700 font-medium">{row.guru}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-xs">
+                            {row.ruang}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

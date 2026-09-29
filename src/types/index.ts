@@ -85,6 +85,8 @@ export interface TeacherProgress {
   completionPercentage: number;
   lastUpdated: string;
   status: 'Lengkap' | 'Proses' | 'Belum';
+  uploadedFileUrl?: string;
+  uploadedFileName?: string;
 }
 
 export interface KaldikMonth {
@@ -121,6 +123,79 @@ export interface SchoolSK {
   totalMembers: number;
   summary: string;
   members: { role: string; name: string; nip: string }[];
+  fileUrl?: string;
+  fileName?: string;
+}
+
+export interface ScheduleItem {
+  id: string;
+  hari: string;
+  kelas: string;
+  jam: string;
+  waktu: string;
+  mapel: string;
+  guru: string;
+  ruang: string;
+}
+
+export interface PiketItem {
+  id: string;
+  hari: string;
+  koordinator: string;
+  anggota: string[];
+  tugasUtama: string;
+}
+
+export interface KaldikEvent {
+  id: string;
+  date: string;
+  event: string;
+  type: 'kbm' | 'libur' | 'asesmen' | 'kegiatan' | 'minggu';
+  semester: 'Ganjil' | 'Genap' | 'Semua';
+}
+
+export interface RmeRow {
+  id: string;
+  no: number;
+  bulan: string;
+  jmlMinggu: number;
+  tdkEfektif: number;
+  efektif: number;
+  ket: string;
+  semester: 'Ganjil' | 'Genap';
+}
+
+export interface MapelStruktur {
+  id: string;
+  no: number;
+  fase: 'X' | 'XI' | 'XII';
+  mapel: string;
+  intra: number;
+  p5: number;
+  total: number;
+  mingguan: number;
+  kategori?: string;
+}
+
+export interface KospChapter {
+  id: string;
+  no: string;
+  title: string;
+  pages: string;
+  desc: string;
+  fileUrl?: string;
+  fileName?: string;
+}
+
+export interface KospDocumentInfo {
+  title: string;
+  subtitle: string;
+  skPengesahan: string;
+  lastUpdated: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  chapters: KospChapter[];
 }
 
 export interface Announcement {

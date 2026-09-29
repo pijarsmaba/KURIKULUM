@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { MenuKey, User as CurrentUser, PerangkatItem, UserRole, LoginPageConfig, Announcement, AcademicSettings } from './types';
+import {
+  MenuKey,
+  User as CurrentUser,
+  PerangkatItem,
+  UserRole,
+  LoginPageConfig,
+  Announcement,
+  AcademicSettings,
+  ScheduleItem,
+  PiketItem,
+  KaldikEvent,
+  RmeRow,
+  MapelStruktur,
+  SchoolSK,
+  TeacherProgress,
+  KospDocumentInfo,
+  KospChapter
+} from './types';
 import {
   DEFAULT_LOGIN_PAGE_CONFIG,
   DEFAULT_ACADEMIC_SETTINGS,
@@ -7,6 +24,13 @@ import {
   DEMO_USERS,
   INITIAL_PERANGKAT,
   TEACHER_PROGRESS_DATA,
+  INITIAL_SCHEDULES,
+  INITIAL_PIKET,
+  INITIAL_KALDIK_EVENTS,
+  INITIAL_RME_DATA,
+  INITIAL_STRUKTUR_DATA,
+  SCHOOL_SKS,
+  INITIAL_KOSP_DOCUMENT
 } from './data/mockData';
 import { HomeMenuCard } from './components/HomeMenuCard';
 import { LoginPage } from './components/LoginPage';
@@ -180,17 +204,128 @@ export default function App() {
     }
   }, [announcements]);
 
+  // Persistent Schedules & Piket
+  const [schedulesList, setSchedulesList] = useState<ScheduleItem[]>(() => {
+    const saved = localStorage.getItem('smaba_schedules_list');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_SCHEDULES; }
+    }
+    return INITIAL_SCHEDULES;
+  });
+
+  const [piketList, setPiketList] = useState<PiketItem[]>(() => {
+    const saved = localStorage.getItem('smaba_piket_list');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_PIKET; }
+    }
+    return INITIAL_PIKET;
+  });
+
+  // Persistent Kaldik & RME
+  const [kaldikEventsList, setKaldikEventsList] = useState<KaldikEvent[]>(() => {
+    const saved = localStorage.getItem('smaba_kaldik_events');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_KALDIK_EVENTS; }
+    }
+    return INITIAL_KALDIK_EVENTS;
+  });
+
+  const [rmeList, setRmeList] = useState<RmeRow[]>(() => {
+    const saved = localStorage.getItem('smaba_rme_list');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_RME_DATA; }
+    }
+    return INITIAL_RME_DATA;
+  });
+
+  // Persistent Struktur Kurikulum
+  const [strukturList, setStrukturList] = useState<MapelStruktur[]>(() => {
+    const saved = localStorage.getItem('smaba_struktur_list');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_STRUKTUR_DATA; }
+    }
+    return INITIAL_STRUKTUR_DATA;
+  });
+
+  // Persistent School SK
+  const [skList, setSkList] = useState<SchoolSK[]>(() => {
+    const saved = localStorage.getItem('smaba_sk_list');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return SCHOOL_SKS; }
+    }
+    return SCHOOL_SKS;
+  });
+
+  // Persistent Teacher Progress Data
+  const [teachersProgressList, setTeachersProgressList] = useState<TeacherProgress[]>(() => {
+    const saved = localStorage.getItem('smaba_teachers_progress');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return TEACHER_PROGRESS_DATA; }
+    }
+    return TEACHER_PROGRESS_DATA;
+  });
+
+  // Persistent KOSP Document & Chapters
+  const [kospData, setKospData] = useState<KospDocumentInfo>(() => {
+    const saved = localStorage.getItem('smaba_kosp_data');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return INITIAL_KOSP_DOCUMENT; }
+    }
+    return INITIAL_KOSP_DOCUMENT;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('smaba_schedules_list', JSON.stringify(schedulesList));
+  }, [schedulesList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_piket_list', JSON.stringify(piketList));
+  }, [piketList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_kaldik_events', JSON.stringify(kaldikEventsList));
+  }, [kaldikEventsList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_rme_list', JSON.stringify(rmeList));
+  }, [rmeList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_struktur_list', JSON.stringify(strukturList));
+  }, [strukturList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_sk_list', JSON.stringify(skList));
+  }, [skList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_teachers_progress', JSON.stringify(teachersProgressList));
+  }, [teachersProgressList]);
+
+  useEffect(() => {
+    localStorage.setItem('smaba_kosp_data', JSON.stringify(kospData));
+  }, [kospData]);
+
   // User Management Handlers (Admin)
   const handleAddUser = (newUser: CurrentUser) => {
-    setUsersList((prev) => [newUser, ...prev]);
+    setUsersList((prev) => {
+      const updated = [newUser, ...prev];
+      try {
+        localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving users to storage:', e);
+      }
+      return updated;
+    });
   };
 
   // Bulk Add / Import from Excel
   const handleBulkAddUsers = (newUsers: CurrentUser[], replaceAll?: boolean) => {
-    if (replaceAll) {
-      setUsersList(newUsers);
-    } else {
-      setUsersList((prev) => {
+    setUsersList((prev) => {
+      let updated: CurrentUser[];
+      if (replaceAll) {
+        updated = newUsers;
+      } else {
         const updatedMap = new Map<string, CurrentUser>();
         prev.forEach((u) => {
           const key = u.username?.toLowerCase() || u.nip || u.id;
@@ -200,15 +335,27 @@ export default function App() {
           const key = nu.username?.toLowerCase() || nu.nip || nu.id;
           updatedMap.set(key, nu);
         });
-        return Array.from(updatedMap.values());
-      });
-    }
+        updated = Array.from(updatedMap.values());
+      }
+      try {
+        localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving users to storage:', e);
+      }
+      return updated;
+    });
   };
 
   const handleUpdateUser = (updatedUser: CurrentUser) => {
-    setUsersList((prev) =>
-      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-    );
+    setUsersList((prev) => {
+      const updated = prev.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+      try {
+        localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving users to storage:', e);
+      }
+      return updated;
+    });
     // If the currently logged in user was modified, sync session
     if (currentUser?.id === updatedUser.id) {
       setCurrentUser(updatedUser);
@@ -217,7 +364,15 @@ export default function App() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    setUsersList((prev) => prev.filter((u) => u.id !== userId));
+    setUsersList((prev) => {
+      const updated = prev.filter((u) => u.id !== userId);
+      try {
+        localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Error saving users to storage:', e);
+      }
+      return updated;
+    });
     if (currentUser?.id === userId) {
       handleLogout();
     }
@@ -266,7 +421,169 @@ export default function App() {
   };
 
   const handleAddNewPerangkat = (newItem: PerangkatItem) => {
-    setPerangkatList([newItem, ...perangkatList]);
+    setPerangkatList((prev) => [newItem, ...prev]);
+  };
+
+  const handleUpdatePerangkat = (updated: PerangkatItem) => {
+    setPerangkatList((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
+  const handleDeletePerangkat = (id: string) => {
+    setPerangkatList((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  // Schedule & Piket Handlers
+  const handleAddSchedule = (item: ScheduleItem) => {
+    setSchedulesList((prev) => [item, ...prev]);
+  };
+
+  const handleUpdateSchedule = (item: ScheduleItem) => {
+    setSchedulesList((prev) => prev.map((s) => (s.id === item.id ? item : s)));
+  };
+
+  const handleDeleteSchedule = (id: string) => {
+    setSchedulesList((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleBulkAddSchedules = (items: ScheduleItem[], replaceMode?: boolean) => {
+    if (replaceMode) {
+      setSchedulesList(items);
+    } else {
+      setSchedulesList((prev) => [...items, ...prev]);
+    }
+  };
+
+  const handleAddPiket = (item: PiketItem) => {
+    setPiketList((prev) => [item, ...prev]);
+  };
+
+  const handleUpdatePiket = (item: PiketItem) => {
+    setPiketList((prev) => prev.map((p) => (p.id === item.id ? item : p)));
+  };
+
+  const handleDeletePiket = (id: string) => {
+    setPiketList((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  // Kaldik & RME Handlers
+  const handleAddKaldikEvent = (event: KaldikEvent) => {
+    setKaldikEventsList((prev) => [event, ...prev]);
+  };
+
+  const handleUpdateKaldikEvent = (event: KaldikEvent) => {
+    setKaldikEventsList((prev) => prev.map((e) => (e.id === event.id ? event : e)));
+  };
+
+  const handleDeleteKaldikEvent = (id: string) => {
+    setKaldikEventsList((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const handleAddRmeRow = (row: RmeRow) => {
+    setRmeList((prev) => [...prev, row]);
+  };
+
+  const handleUpdateRmeRow = (row: RmeRow) => {
+    setRmeList((prev) => prev.map((r) => (r.id === row.id ? row : r)));
+  };
+
+  const handleDeleteRmeRow = (id: string) => {
+    setRmeList((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  // Struktur Kurikulum Handlers
+  const handleAddMapelStruktur = (item: MapelStruktur) => {
+    setStrukturList((prev) => [...prev, item]);
+  };
+
+  const handleUpdateMapelStruktur = (item: MapelStruktur) => {
+    setStrukturList((prev) => prev.map((s) => (s.id === item.id ? item : s)));
+  };
+
+  const handleDeleteMapelStruktur = (id: string) => {
+    setStrukturList((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // SK Kurikulum Handlers
+  const handleAddSk = (sk: SchoolSK) => {
+    setSkList((prev) => [sk, ...prev]);
+  };
+
+  const handleUpdateSk = (sk: SchoolSK) => {
+    setSkList((prev) => prev.map((s) => (s.id === sk.id ? sk : s)));
+  };
+
+  const handleDeleteSk = (id: string) => {
+    setSkList((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // Teacher Progress Handlers
+  const handleAddTeacherProgress = (item: TeacherProgress) => {
+    setTeachersProgressList((prev) => [item, ...prev]);
+  };
+
+  const handleUpdateTeacherProgress = (item: TeacherProgress) => {
+    setTeachersProgressList((prev) => prev.map((t) => (t.id === item.id ? item : t)));
+  };
+
+  const handleDeleteTeacherProgress = (id: string) => {
+    setTeachersProgressList((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const handleToggleTeacherChecklist = (
+    teacherId: string,
+    itemKey: keyof TeacherProgress['checklist']
+  ) => {
+    setTeachersProgressList((prev) =>
+      prev.map((t) => {
+        if (t.id === teacherId) {
+          const updatedChecklist = {
+            ...t.checklist,
+            [itemKey]: !t.checklist[itemKey],
+          };
+          const total = Object.keys(updatedChecklist).length;
+          const completed = Object.values(updatedChecklist).filter(Boolean).length;
+          const percentage = Math.round((completed / total) * 100);
+          let status: 'Lengkap' | 'Proses' | 'Belum' = 'Proses';
+          if (percentage === 100) status = 'Lengkap';
+          else if (percentage === 0) status = 'Belum';
+
+          return {
+            ...t,
+            checklist: updatedChecklist,
+            percentage,
+            status,
+            lastUpdated: 'Baru saja',
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+  // KOSP Handlers
+  const handleUpdateKospDocument = (info: KospDocumentInfo) => {
+    setKospData(info);
+  };
+
+  const handleAddKospChapter = (chapter: KospChapter) => {
+    setKospData((prev) => ({
+      ...prev,
+      chapters: [...prev.chapters, chapter],
+    }));
+  };
+
+  const handleUpdateKospChapter = (chapter: KospChapter) => {
+    setKospData((prev) => ({
+      ...prev,
+      chapters: prev.chapters.map((c) => (c.id === chapter.id ? chapter : c)),
+    }));
+  };
+
+  const handleDeleteKospChapter = (id: string) => {
+    setKospData((prev) => ({
+      ...prev,
+      chapters: prev.chapters.filter((c) => c.id !== id),
+    }));
   };
 
   const handleUpdatePerangkatStatus = (
@@ -391,6 +708,8 @@ export default function App() {
             setCurrentUser(user);
             localStorage.setItem('smaba_auth_user', JSON.stringify(user));
           }}
+          academicSettings={academicSettings}
+          announcements={announcements}
         />
 
         <DocumentPreviewModal
@@ -428,26 +747,52 @@ export default function App() {
         googleUser={googleUser}
         onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
         onSwitchUserRole={handleSwitchUserRole}
+        academicSettings={academicSettings}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {currentMenu === 'kosp' && (
-          <KospView onOpenDocument={handleOpenDocument} />
+          <KospView
+            onOpenDocument={handleOpenDocument}
+            academicSettings={academicSettings}
+            kospData={kospData}
+          />
         )}
 
-        {currentMenu === 'struktur' && <StrukturKurikulumView />}
+        {currentMenu === 'struktur' && (
+          <StrukturKurikulumView
+            academicSettings={academicSettings}
+            strukturList={strukturList}
+          />
+        )}
 
-        {currentMenu === 'kaldik' && <KaldikView />}
+        {currentMenu === 'kaldik' && (
+          <KaldikView
+            academicSettings={academicSettings}
+            eventsList={kaldikEventsList}
+            rmeList={rmeList}
+          />
+        )}
 
         {currentMenu === 'jadwal' && (
-          <JadwalView currentUser={currentUser} />
+          <JadwalView
+            currentUser={currentUser}
+            academicSettings={academicSettings}
+            schedulesList={schedulesList}
+            piketList={piketList}
+          />
         )}
 
-        {currentMenu === 'uraian' && <UraianKegiatanView />}
+        {currentMenu === 'uraian' && <UraianKegiatanView academicSettings={academicSettings} />}
 
         {currentMenu === 'sk' && (
-          <SkView onOpenDocument={handleOpenDocument} currentUser={currentUser} />
+          <SkView
+            onOpenDocument={handleOpenDocument}
+            currentUser={currentUser}
+            academicSettings={academicSettings}
+            skList={skList}
+          />
         )}
 
         {currentMenu === 'perangkat' && (
@@ -459,6 +804,7 @@ export default function App() {
             onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
             onUpdatePerangkatStatus={handleUpdatePerangkatStatus}
             onSignByPrincipal={handleSignByPrincipal}
+            academicSettings={academicSettings}
           />
         )}
 
@@ -467,19 +813,26 @@ export default function App() {
             currentUser={currentUser}
             onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
             onNavigateToPerangkat={() => setCurrentMenu('perangkat')}
+            academicSettings={academicSettings}
+            teachersData={teachersProgressList}
+            onToggleChecklist={handleToggleTeacherChecklist}
           />
         )}
 
-        {currentMenu === 'situs' && <SitusKurikulumView />}
+        {currentMenu === 'situs' && <SitusKurikulumView academicSettings={academicSettings} />}
 
         {currentMenu === 'admin' && (
           <AdminView
             currentUser={currentUser}
             onSwitchToAdmin={handleSwitchToAdmin}
             perangkatList={perangkatList}
+            onAddPerangkat={handleAddNewPerangkat}
+            onUpdatePerangkat={handleUpdatePerangkat}
+            onDeletePerangkat={handleDeletePerangkat}
             onUpdatePerangkatStatus={handleUpdatePerangkatStatus}
             onOpenSheetsModal={() => setIsSheetsModalOpen(true)}
             onSignByPrincipal={handleSignByPrincipal}
+            onOpenDocument={handleOpenDocument}
             usersList={usersList}
             onAddUser={handleAddUser}
             onBulkAddUsers={handleBulkAddUsers}
@@ -492,6 +845,47 @@ export default function App() {
             announcements={announcements}
             onAddAnnouncement={handleAddAnnouncement}
             onDeleteAnnouncement={handleDeleteAnnouncement}
+            // Jadwal KBM & Piket
+            schedulesList={schedulesList}
+            onAddSchedule={handleAddSchedule}
+            onUpdateSchedule={handleUpdateSchedule}
+            onDeleteSchedule={handleDeleteSchedule}
+            onBulkAddSchedules={handleBulkAddSchedules}
+            piketList={piketList}
+            onAddPiket={handleAddPiket}
+            onUpdatePiket={handleUpdatePiket}
+            onDeletePiket={handleDeletePiket}
+            // Kaldik & RME
+            kaldikEventsList={kaldikEventsList}
+            onAddKaldikEvent={handleAddKaldikEvent}
+            onUpdateKaldikEvent={handleUpdateKaldikEvent}
+            onDeleteKaldikEvent={handleDeleteKaldikEvent}
+            rmeList={rmeList}
+            onAddRmeRow={handleAddRmeRow}
+            onUpdateRmeRow={handleUpdateRmeRow}
+            onDeleteRmeRow={handleDeleteRmeRow}
+            // Struktur Kurikulum
+            strukturList={strukturList}
+            onAddMapelStruktur={handleAddMapelStruktur}
+            onUpdateMapelStruktur={handleUpdateMapelStruktur}
+            onDeleteMapelStruktur={handleDeleteMapelStruktur}
+            // SK Kurikulum
+            skList={skList}
+            onAddSk={handleAddSk}
+            onUpdateSk={handleUpdateSk}
+            onDeleteSk={handleDeleteSk}
+            // Data Guru
+            teachersProgressList={teachersProgressList}
+            onAddTeacherProgress={handleAddTeacherProgress}
+            onUpdateTeacherProgress={handleUpdateTeacherProgress}
+            onDeleteTeacherProgress={handleDeleteTeacherProgress}
+            onToggleTeacherChecklist={handleToggleTeacherChecklist}
+            // KOSP
+            kospData={kospData}
+            onUpdateKospDocument={handleUpdateKospDocument}
+            onAddKospChapter={handleAddKospChapter}
+            onUpdateKospChapter={handleUpdateKospChapter}
+            onDeleteKospChapter={handleDeleteKospChapter}
           />
         )}
       </main>
@@ -513,7 +907,7 @@ export default function App() {
         googleToken={googleToken}
         onGoogleAuthSuccess={handleGoogleAuthSuccess}
         onGoogleLogout={handleGoogleLogout}
-        teachersData={TEACHER_PROGRESS_DATA}
+        teachersData={teachersProgressList}
         perangkatData={perangkatList}
       />
     </div>

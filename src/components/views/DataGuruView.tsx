@@ -20,26 +20,40 @@ import {
   Printer
 } from 'lucide-react';
 import { TEACHER_PROGRESS_DATA } from '../../data/mockData';
-import { TeacherProgress, User as CurrentUser, UserRole } from '../../types';
+import { TeacherProgress, User as CurrentUser, UserRole, AcademicSettings } from '../../types';
 
 interface DataGuruViewProps {
   currentUser?: CurrentUser | null;
   onOpenSheetsModal?: () => void;
   onNavigateToPerangkat?: () => void;
+  academicSettings?: AcademicSettings;
+  teachersData?: TeacherProgress[];
+  onToggleChecklist?: (teacherId: string, itemKey: keyof TeacherProgress['checklist']) => void;
 }
 
 export const DataGuruView: React.FC<DataGuruViewProps> = ({
   currentUser,
   onOpenSheetsModal,
   onNavigateToPerangkat,
+  academicSettings,
+  teachersData,
+  onToggleChecklist: onToggleChecklistProp,
 }) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
 
-  const [data, setData] = useState<TeacherProgress[]>(TEACHER_PROGRESS_DATA);
+  const [data, setData] = useState<TeacherProgress[]>(teachersData || TEACHER_PROGRESS_DATA);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Semua' | 'Lengkap' | 'Proses' | 'Belum'>('Semua');
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   const [isSignedByKepsek, setIsSignedByKepsek] = useState(false);
+
+  React.useEffect(() => {
+    if (teachersData && teachersData.length > 0) {
+      setData(teachersData);
+    }
+  }, [teachersData]);
 
   // Identify teacher's personal record
   const myRecord = data.find(
@@ -79,6 +93,10 @@ export const DataGuruView: React.FC<DataGuruViewProps> = ({
 
   const handleToggleChecklist = (teacherId: string, itemKey: keyof TeacherProgress['checklist']) => {
     if (currentRole !== 'admin') return;
+
+    if (onToggleChecklistProp) {
+      onToggleChecklistProp(teacherId, itemKey);
+    }
 
     setData((prev) =>
       prev.map((t) => {
@@ -133,10 +151,10 @@ export const DataGuruView: React.FC<DataGuruViewProps> = ({
           </h2>
           <p className="text-emerald-100/80 text-xs sm:text-sm leading-relaxed">
             {currentRole === 'guru'
-              ? 'Pantau progres keterisian 5 dokumen wajib Kurikulum Merdeka Anda: CP, TP & ATP, Modul Ajar, Prota & Promes, serta Instrumen Asesmen.'
+              ? `Pantau progres keterisian 5 dokumen wajib Kurikulum Merdeka Anda: CP, TP & ATP, Modul Ajar, Prota & Promes, serta Instrumen Asesmen TA ${activeYear} (Semester ${activeSemester}).`
               : currentRole === 'kepsek'
-              ? 'Laporan kepatuhan dan audit keterisian dokumen kurikulum 54 dewan guru SMAN 1 Batangan untuk evaluasi penjaminan mutu internal (TPMPS).'
-              : 'Rekapitulasi keterisian dokumen administrasi Kurikulum Merdeka semester berjalan di SMAN 1 Batangan. Pantau progres, validasi dan kirim pengingat.'}
+              ? `Laporan kepatuhan dan audit keterisian dokumen kurikulum 54 dewan guru SMAN 1 Batangan untuk evaluasi penjaminan mutu internal (TPMPS) TA ${activeYear} (Semester ${activeSemester}).`
+              : `Rekapitulasi keterisian dokumen administrasi Kurikulum Merdeka Semester ${activeSemester} TA ${activeYear} di SMAN 1 Batangan. Pantau progres, validasi dan kirim pengingat.`}
           </p>
         </div>
 

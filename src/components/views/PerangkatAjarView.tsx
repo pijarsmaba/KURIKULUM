@@ -24,7 +24,7 @@ import {
   RotateCcw,
   SlidersHorizontal
 } from 'lucide-react';
-import { PerangkatItem, User as CurrentUser, UserRole } from '../../types';
+import { PerangkatItem, User as CurrentUser, UserRole, AcademicSettings } from '../../types';
 
 interface PerangkatAjarViewProps {
   currentUser: CurrentUser | null;
@@ -34,6 +34,7 @@ interface PerangkatAjarViewProps {
   onOpenSheetsModal?: () => void;
   onUpdatePerangkatStatus?: (id: string, status: 'Disetujui' | 'Perlu Revisi', revisionNotes?: string) => void;
   onSignByPrincipal?: (id: string, notes?: string) => void;
+  academicSettings?: AcademicSettings;
 }
 
 export const PerangkatAjarView: React.FC<PerangkatAjarViewProps> = ({
@@ -44,8 +45,13 @@ export const PerangkatAjarView: React.FC<PerangkatAjarViewProps> = ({
   onOpenSheetsModal,
   onUpdatePerangkatStatus,
   onSignByPrincipal,
+  academicSettings,
 }) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeDeadline = academicSettings?.uploadDeadline || '2025-01-31';
+  const activeWaka = academicSettings?.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.';
 
   // Set default active tab based on role
   const [activeTab, setActiveTab] = useState<'saya' | 'unduh' | 'unggah' | 'verifikasi' | 'supervisi'>(
@@ -239,6 +245,14 @@ export const PerangkatAjarView: React.FC<PerangkatAjarViewProps> = ({
                 ? 'Supervisi Klinis & Pengesahan Kepala Sekolah'
                 : 'Repositori Kurikulum Terbuka'}
             </span>
+            <span className="opacity-60">•</span>
+            <span className="font-bold text-amber-300">TA {activeYear} ({activeSemester})</span>
+            {activeDeadline && (
+              <>
+                <span className="opacity-60 hidden sm:inline">•</span>
+                <span className="hidden sm:inline text-emerald-200">Deadline: {activeDeadline}</span>
+              </>
+            )}
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             {currentRole === 'guru'

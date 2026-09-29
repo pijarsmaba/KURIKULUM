@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { Search, ExternalLink, Globe, Link2, Check, Bookmark, Sparkles } from 'lucide-react';
 import { CURRICULUM_LINKS } from '../../data/mockData';
+import { AcademicSettings } from '../../types';
 
-export const SitusKurikulumView: React.FC = () => {
+interface SitusKurikulumViewProps {
+  academicSettings?: AcademicSettings;
+}
+
+export const SitusKurikulumView: React.FC<SitusKurikulumViewProps> = ({ academicSettings }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Semua');

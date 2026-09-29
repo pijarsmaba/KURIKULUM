@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
 import { Scroll, FileText, Download, CheckCircle, Users, Eye, Search, Award, CheckCircle2, User } from 'lucide-react';
 import { SCHOOL_SKS } from '../../data/mockData';
-import { SchoolSK, User as CurrentUser, UserRole } from '../../types';
+import { SchoolSK, User as CurrentUser, UserRole, AcademicSettings } from '../../types';
 
 interface SkViewProps {
   onOpenDocument: (title: string, category: string, content?: string) => void;
   currentUser?: CurrentUser | null;
+  academicSettings?: AcademicSettings;
+  skList?: SchoolSK[];
 }
 
-export const SkView: React.FC<SkViewProps> = ({ onOpenDocument, currentUser }) => {
+export const SkView: React.FC<SkViewProps> = ({
+  onOpenDocument,
+  currentUser,
+  academicSettings,
+  skList = SCHOOL_SKS,
+}) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeWaka = academicSettings?.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.';
 
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
-  const [activeSk, setActiveSk] = useState<SchoolSK>(SCHOOL_SKS[0]);
+  const [activeSkId, setActiveSkId] = useState<string>(skList[0]?.id || 'sk-01');
   const [signedSks, setSignedSks] = useState<Record<string, boolean>>({
     'sk-01': true,
     'sk-02': true,
@@ -22,9 +32,11 @@ export const SkView: React.FC<SkViewProps> = ({ onOpenDocument, currentUser }) =
 
   const categories = ['Semua', 'TPMPS', 'TPK', 'KP', 'SK KBM'];
 
-  const filtered = SCHOOL_SKS.filter((item) =>
+  const filtered = skList.filter((item) =>
     selectedCategory === 'Semua' ? true : item.category === selectedCategory
   );
+
+  const activeSk = skList.find((s) => s.id === activeSkId) || filtered[0] || skList[0] || SCHOOL_SKS[0];
 
   // Check if current user is member of active SK
   const userMemberRecord = activeSk.members.find(
@@ -54,7 +66,7 @@ export const SkView: React.FC<SkViewProps> = ({ onOpenDocument, currentUser }) =
               : 'SK TPMPS, TPK, KP, SK KBM GURU & TENDIK'}
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Surat Keputusan Kepala SMA Negeri 1 Batangan tentang Penjaminan Mutu & Penugasan Mengajar TA 2024/2025.
+            Surat Keputusan Kepala SMA Negeri 1 Batangan tentang Penjaminan Mutu & Penugasan Mengajar TA {activeYear} (Semester {activeSemester}) • Waka Kurikulum: {activeWaka}.
           </p>
         </div>
 
@@ -83,7 +95,7 @@ export const SkView: React.FC<SkViewProps> = ({ onOpenDocument, currentUser }) =
           {filtered.map((sk) => (
             <div
               key={sk.id}
-              onClick={() => setActiveSk(sk)}
+              onClick={() => setActiveSkId(sk.id)}
               className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                 activeSk.id === sk.id
                   ? 'bg-violet-50/80 border-violet-400 shadow-md ring-1 ring-violet-400'

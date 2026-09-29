@@ -39,20 +39,81 @@ import {
   UploadCloud,
   FileUp,
   CheckSquare,
-  BarChart3
+  BarChart3,
+  CalendarDays,
+  Calendar,
+  Layers,
+  Scroll,
+  CloudUpload,
+  Monitor,
+  BookOpen
 } from 'lucide-react';
-import { User, Announcement, PerangkatItem, UserRole, LoginPageConfig, AcademicSettings } from '../../types';
-import { INITIAL_ANNOUNCEMENTS, SCHOOL_INFO, DEFAULT_LOGIN_PAGE_CONFIG, DEFAULT_ACADEMIC_SETTINGS } from '../../data/mockData';
+import {
+  User,
+  Announcement,
+  PerangkatItem,
+  UserRole,
+  LoginPageConfig,
+  AcademicSettings,
+  ScheduleItem,
+  PiketItem,
+  KaldikEvent,
+  RmeRow,
+  MapelStruktur,
+  SchoolSK,
+  TeacherProgress,
+  KospDocumentInfo,
+  KospChapter
+} from '../../types';
+import {
+  INITIAL_ANNOUNCEMENTS,
+  SCHOOL_INFO,
+  DEFAULT_LOGIN_PAGE_CONFIG,
+  DEFAULT_ACADEMIC_SETTINGS,
+  INITIAL_SCHEDULES,
+  INITIAL_PIKET,
+  INITIAL_KALDIK_EVENTS,
+  INITIAL_RME_DATA,
+  INITIAL_STRUKTUR_DATA,
+  SCHOOL_SKS,
+  TEACHER_PROGRESS_DATA,
+  INITIAL_KOSP_DOCUMENT
+} from '../../data/mockData';
 import { SmabaCrestLogo, PijarEmblemLogo } from '../Logos';
 import { AdminSummaryDashboard } from './AdminSummaryDashboard';
+import { AdminJadwalTab } from './admin/AdminJadwalTab';
+import { AdminKaldikTab } from './admin/AdminKaldikTab';
+import { AdminStrukturTab } from './admin/AdminStrukturTab';
+import { AdminSkTab } from './admin/AdminSkTab';
+import { AdminPerangkatTab } from './admin/AdminPerangkatTab';
+import { AdminDataGuruTab } from './admin/AdminDataGuruTab';
+import { AdminKospTab } from './admin/AdminKospTab';
+
+export type AdminTabKey =
+  | 'dashboard'
+  | 'users'
+  | 'jadwal'
+  | 'kaldik'
+  | 'struktur'
+  | 'sk'
+  | 'perangkat'
+  | 'data-guru'
+  | 'kosp'
+  | 'login-design'
+  | 'kurikulum'
+  | 'announcements';
 
 interface AdminViewProps {
   currentUser: User | null;
   onSwitchToAdmin: () => void;
   perangkatList: PerangkatItem[];
-  onUpdatePerangkatStatus: (id: string, status: 'Disetujui' | 'Perlu Revisi') => void;
+  onAddPerangkat?: (item: PerangkatItem) => void;
+  onUpdatePerangkat?: (item: PerangkatItem) => void;
+  onDeletePerangkat?: (id: string) => void;
+  onUpdatePerangkatStatus: (id: string, status: 'Disetujui' | 'Perlu Revisi', notes?: string) => void;
   onOpenSheetsModal?: () => void;
   onSignByPrincipal?: (id: string, notes?: string) => void;
+  onOpenDocument?: (title: string, category: string, content?: string) => void;
   usersList?: User[];
   onAddUser?: (user: User) => void;
   onBulkAddUsers?: (newUsers: User[], replaceAll?: boolean) => void;
@@ -65,15 +126,60 @@ interface AdminViewProps {
   announcements?: Announcement[];
   onAddAnnouncement?: (announcement: Announcement) => void;
   onDeleteAnnouncement?: (id: string) => void;
+  // Jadwal KBM & Piket
+  schedulesList?: ScheduleItem[];
+  onAddSchedule?: (item: ScheduleItem) => void;
+  onUpdateSchedule?: (item: ScheduleItem) => void;
+  onDeleteSchedule?: (id: string) => void;
+  onBulkAddSchedules?: (items: ScheduleItem[], replaceMode?: boolean) => void;
+  piketList?: PiketItem[];
+  onAddPiket?: (item: PiketItem) => void;
+  onUpdatePiket?: (item: PiketItem) => void;
+  onDeletePiket?: (id: string) => void;
+  // Kaldik & RME
+  kaldikEventsList?: KaldikEvent[];
+  onAddKaldikEvent?: (event: KaldikEvent) => void;
+  onUpdateKaldikEvent?: (event: KaldikEvent) => void;
+  onDeleteKaldikEvent?: (id: string) => void;
+  rmeList?: RmeRow[];
+  onAddRmeRow?: (row: RmeRow) => void;
+  onUpdateRmeRow?: (row: RmeRow) => void;
+  onDeleteRmeRow?: (id: string) => void;
+  // Struktur Kurikulum
+  strukturList?: MapelStruktur[];
+  onAddMapelStruktur?: (item: MapelStruktur) => void;
+  onUpdateMapelStruktur?: (item: MapelStruktur) => void;
+  onDeleteMapelStruktur?: (id: string) => void;
+  // SK Kurikulum
+  skList?: SchoolSK[];
+  onAddSk?: (sk: SchoolSK) => void;
+  onUpdateSk?: (sk: SchoolSK) => void;
+  onDeleteSk?: (id: string) => void;
+  // Data Guru Monitoring
+  teachersProgressList?: TeacherProgress[];
+  onAddTeacherProgress?: (item: TeacherProgress) => void;
+  onUpdateTeacherProgress?: (item: TeacherProgress) => void;
+  onDeleteTeacherProgress?: (id: string) => void;
+  onToggleTeacherChecklist?: (teacherId: string, itemKey: keyof TeacherProgress['checklist']) => void;
+  // KOSP
+  kospData?: KospDocumentInfo;
+  onUpdateKospDocument?: (info: KospDocumentInfo) => void;
+  onAddKospChapter?: (chapter: KospChapter) => void;
+  onUpdateKospChapter?: (chapter: KospChapter) => void;
+  onDeleteKospChapter?: (id: string) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
   currentUser,
   onSwitchToAdmin,
   perangkatList,
+  onAddPerangkat = () => {},
+  onUpdatePerangkat = () => {},
+  onDeletePerangkat = () => {},
   onUpdatePerangkatStatus,
   onOpenSheetsModal,
   onSignByPrincipal,
+  onOpenDocument,
   usersList = [],
   onAddUser,
   onBulkAddUsers,
@@ -86,11 +192,52 @@ export const AdminView: React.FC<AdminViewProps> = ({
   announcements: announcementsProp,
   onAddAnnouncement,
   onDeleteAnnouncement,
+  // Jadwal KBM & Piket
+  schedulesList = INITIAL_SCHEDULES,
+  onAddSchedule = () => {},
+  onUpdateSchedule = () => {},
+  onDeleteSchedule = () => {},
+  onBulkAddSchedules,
+  piketList = INITIAL_PIKET,
+  onAddPiket = () => {},
+  onUpdatePiket = () => {},
+  onDeletePiket = () => {},
+  // Kaldik & RME
+  kaldikEventsList = INITIAL_KALDIK_EVENTS,
+  onAddKaldikEvent = () => {},
+  onUpdateKaldikEvent = () => {},
+  onDeleteKaldikEvent = () => {},
+  rmeList = INITIAL_RME_DATA,
+  onAddRmeRow = () => {},
+  onUpdateRmeRow = () => {},
+  onDeleteRmeRow = () => {},
+  // Struktur Kurikulum
+  strukturList = INITIAL_STRUKTUR_DATA,
+  onAddMapelStruktur = () => {},
+  onUpdateMapelStruktur = () => {},
+  onDeleteMapelStruktur = () => {},
+  // SK Kurikulum
+  skList = SCHOOL_SKS,
+  onAddSk = () => {},
+  onUpdateSk = () => {},
+  onDeleteSk = () => {},
+  // Data Guru Monitoring
+  teachersProgressList = TEACHER_PROGRESS_DATA,
+  onAddTeacherProgress = () => {},
+  onUpdateTeacherProgress = () => {},
+  onDeleteTeacherProgress = () => {},
+  onToggleTeacherChecklist = () => {},
+  // KOSP
+  kospData = INITIAL_KOSP_DOCUMENT,
+  onUpdateKospDocument = () => {},
+  onAddKospChapter = () => {},
+  onUpdateKospChapter = () => {},
+  onDeleteKospChapter = () => {},
 }) => {
   const currentRole: UserRole = currentUser?.role || 'guru';
 
   // Admin Tab Navigation
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'users' | 'login-design' | 'kurikulum' | 'announcements'>('dashboard');
+  const [adminTab, setAdminTab] = useState<AdminTabKey>('dashboard');
 
   // Announcements State with Local Persistence
   const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
@@ -123,10 +270,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
     const saved = localStorage.getItem('smaba_academic_settings');
     if (saved) {
       try {
-        return JSON.parse(saved).academicYear || academicSettings.academicYear || '2024/2025';
-      } catch (e) {
-        return academicSettings.academicYear || '2024/2025';
-      }
+        const parsed = JSON.parse(saved);
+        if (parsed.academicYear) return parsed.academicYear;
+      } catch (e) {}
     }
     return academicSettings.academicYear || '2024/2025';
   });
@@ -134,10 +280,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
     const saved = localStorage.getItem('smaba_academic_settings');
     if (saved) {
       try {
-        return JSON.parse(saved).semester || academicSettings.semester || 'Genap';
-      } catch (e) {
-        return academicSettings.semester || 'Genap';
-      }
+        const parsed = JSON.parse(saved);
+        if (parsed.semester) return parsed.semester;
+      } catch (e) {}
     }
     return academicSettings.semester || 'Genap';
   });
@@ -145,20 +290,40 @@ export const AdminView: React.FC<AdminViewProps> = ({
     const saved = localStorage.getItem('smaba_academic_settings');
     if (saved) {
       try {
-        return JSON.parse(saved).maxJp || academicSettings.maxJp || '40';
-      } catch (e) {
-        return academicSettings.maxJp || '40';
-      }
+        const parsed = JSON.parse(saved);
+        if (parsed.maxJp) return parsed.maxJp;
+      } catch (e) {}
     }
     return academicSettings.maxJp || '40';
   });
   const [curriculumName, setCurriculumName] = useState<string>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.curriculumName) return parsed.curriculumName;
+      } catch (e) {}
+    }
     return academicSettings.curriculumName || 'Kurikulum Merdeka Mandiri Berbagi';
   });
   const [uploadDeadline, setUploadDeadline] = useState<string>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.uploadDeadline) return parsed.uploadDeadline;
+      } catch (e) {}
+    }
     return academicSettings.uploadDeadline || '2025-01-31';
   });
   const [wakaKurikulumName, setWakaKurikulumName] = useState<string>(() => {
+    const saved = localStorage.getItem('smaba_academic_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.wakaKurikulumName) return parsed.wakaKurikulumName;
+      } catch (e) {}
+    }
     return academicSettings.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.';
   });
 
@@ -174,6 +339,45 @@ export const AdminView: React.FC<AdminViewProps> = ({
     }
   }, [academicSettings]);
 
+  // Real-time automatic persistence for curriculum inputs
+  const updateAcademicField = (field: keyof AcademicSettings, value: string) => {
+    let newYear = academicYear;
+    let newSem = semester;
+    let newJp = maxJp;
+    let newCurr = curriculumName;
+    let newDead = uploadDeadline;
+    let newWaka = wakaKurikulumName;
+
+    if (field === 'academicYear') { setAcademicYear(value); newYear = value; }
+    if (field === 'semester') { setSemester(value as 'Ganjil' | 'Genap'); newSem = value as 'Ganjil' | 'Genap'; }
+    if (field === 'maxJp') { setMaxJp(value); newJp = value; }
+    if (field === 'curriculumName') { setCurriculumName(value); newCurr = value; }
+    if (field === 'uploadDeadline') { setUploadDeadline(value); newDead = value; }
+    if (field === 'wakaKurikulumName') { setWakaKurikulumName(value); newWaka = value; }
+
+    const updated: AcademicSettings = {
+      academicYear: newYear.trim(),
+      semester: newSem,
+      maxJp: newJp.trim(),
+      curriculumName: newCurr.trim(),
+      uploadDeadline: newDead,
+      wakaKurikulumName: newWaka.trim(),
+    };
+
+    try {
+      localStorage.setItem('smaba_academic_settings', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Error saving academic settings:', e);
+    }
+
+    if (onUpdateAcademicSettings) {
+      onUpdateAcademicSettings(updated);
+    }
+  };
+
+  // User Action Feedback State (for notifications when adding/editing/deleting users)
+  const [userActionFeedback, setUserActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   // Login Page Customization Form State with local sync
   const [headerTagline, setHeaderTagline] = useState(loginConfig.headerTagline);
   const [headerSchoolName, setHeaderSchoolName] = useState(loginConfig.headerSchoolName);
@@ -183,6 +387,37 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [leftLogoUrl, setLeftLogoUrl] = useState<string>(loginConfig.leftLogoUrl || '');
   const [rightLogoUrl, setRightLogoUrl] = useState<string>(loginConfig.rightLogoUrl || '');
   const [savedLoginConfig, setSavedLoginConfig] = useState(false);
+
+  // Real-time automatic persistence for login design inputs
+  const updateLoginField = (field: keyof LoginPageConfig, value: string) => {
+    let tag = headerTagline;
+    let sch = headerSchoolName;
+    let wel = welcomeTitle;
+    let sub = welcomeSubtitle;
+    let foo = footerText;
+
+    if (field === 'headerTagline') { setHeaderTagline(value); tag = value; }
+    if (field === 'headerSchoolName') { setHeaderSchoolName(value); sch = value; }
+    if (field === 'welcomeTitle') { setWelcomeTitle(value); wel = value; }
+    if (field === 'welcomeSubtitle') { setWelcomeSubtitle(value); sub = value; }
+    if (field === 'footerText') { setFooterText(value); foo = value; }
+
+    const updated: LoginPageConfig = {
+      headerTagline: tag.trim(),
+      headerSchoolName: sch.trim(),
+      welcomeTitle: wel.trim(),
+      welcomeSubtitle: sub.trim(),
+      footerText: foo.trim(),
+      leftLogoUrl,
+      rightLogoUrl,
+    };
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(updated));
+    } catch (e) {
+      console.warn(e);
+    }
+    if (onUpdateLoginConfig) onUpdateLoginConfig(updated);
+  };
 
   React.useEffect(() => {
     setHeaderTagline(loginConfig.headerTagline);
@@ -234,9 +469,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [formEmail, setFormEmail] = useState('');
 
   // Kepsek specific states
-  const [kepsekDirectives, setKepsekDirectives] = useState(
-    'Fokus semester genap: 1. Penuntasan Asesmen Sumatif Akhir Jenjang (ASAJ) Kelas XII, 2. Penguatan Gelar Karya P5 Kearifan Lokal Pantai Batangan, 3. Supervisi klinis kelengkapan modul ajar 100% sebelum Maret 2025.'
-  );
+  const [kepsekDirectives, setKepsekDirectives] = useState(() => {
+    const saved = localStorage.getItem('smaba_kepsek_directives');
+    return saved || 'Fokus semester genap: 1. Penuntasan Asesmen Sumatif Akhir Jenjang (ASAJ) Kelas XII, 2. Penguatan Gelar Karya P5 Kearifan Lokal Pantai Batangan, 3. Supervisi klinis kelengkapan modul ajar 100% sebelum Maret 2025.';
+  });
   const [savedDirectives, setSavedDirectives] = useState(false);
 
   // Toggle show password per user in table
@@ -280,14 +516,48 @@ export const AdminView: React.FC<AdminViewProps> = ({
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
           const compressed = canvas.toDataURL('image/png');
+          const finalLeft = position === 'left' ? compressed : leftLogoUrl;
+          const finalRight = position === 'right' ? compressed : rightLogoUrl;
           if (position === 'left') {
             setLeftLogoUrl(compressed);
           } else {
             setRightLogoUrl(compressed);
           }
+          const updatedConfig: LoginPageConfig = {
+            headerTagline: headerTagline.trim(),
+            headerSchoolName: headerSchoolName.trim(),
+            welcomeTitle: welcomeTitle.trim(),
+            welcomeSubtitle: welcomeSubtitle.trim(),
+            footerText: footerText.trim(),
+            leftLogoUrl: finalLeft,
+            rightLogoUrl: finalRight,
+          };
+          try {
+            localStorage.setItem('smaba_login_config', JSON.stringify(updatedConfig));
+          } catch (err) {
+            console.warn(err);
+          }
+          if (onUpdateLoginConfig) onUpdateLoginConfig(updatedConfig);
         } else {
+          const finalLeft = position === 'left' ? rawData : leftLogoUrl;
+          const finalRight = position === 'right' ? rawData : rightLogoUrl;
           if (position === 'left') setLeftLogoUrl(rawData);
           else setRightLogoUrl(rawData);
+          const updatedConfig: LoginPageConfig = {
+            headerTagline: headerTagline.trim(),
+            headerSchoolName: headerSchoolName.trim(),
+            welcomeTitle: welcomeTitle.trim(),
+            welcomeSubtitle: welcomeSubtitle.trim(),
+            footerText: footerText.trim(),
+            leftLogoUrl: finalLeft,
+            rightLogoUrl: finalRight,
+          };
+          try {
+            localStorage.setItem('smaba_login_config', JSON.stringify(updatedConfig));
+          } catch (err) {
+            console.warn(err);
+          }
+          if (onUpdateLoginConfig) onUpdateLoginConfig(updatedConfig);
         }
       };
       img.src = rawData;
@@ -325,19 +595,59 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   // Preset quick fill options
   const handleApplyPresetSiperwali = () => {
-    setHeaderTagline('PUSAT INFORMASI DAN JARINGAN BELAJAR');
-    setHeaderSchoolName('SMA NEGERI 1 BATANGAN');
-    setWelcomeTitle('Selamat Datang di Siperwali 👋');
-    setWelcomeSubtitle('Sistem Informasi Perwalian Siswa');
-    setFooterText('© 2026 SIPERWALI • SMA Negeri 1 Batangan');
+    const config: LoginPageConfig = {
+      headerTagline: 'PUSAT INFORMASI DAN JARINGAN BELAJAR',
+      headerSchoolName: 'SMA NEGERI 1 BATANGAN',
+      welcomeTitle: 'Selamat Datang di Siperwali 👋',
+      welcomeSubtitle: 'Sistem Informasi Perwalian Siswa',
+      footerText: '© 2026 SIPERWALI • SMA Negeri 1 Batangan',
+      leftLogoUrl,
+      rightLogoUrl,
+    };
+    setHeaderTagline(config.headerTagline);
+    setHeaderSchoolName(config.headerSchoolName);
+    setWelcomeTitle(config.welcomeTitle);
+    setWelcomeSubtitle(config.welcomeSubtitle);
+    setFooterText(config.footerText);
+
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(config));
+    } catch (e) {
+      console.warn(e);
+    }
+    if (onUpdateLoginConfig) {
+      onUpdateLoginConfig(config);
+    }
+    setSavedLoginConfig(true);
+    setTimeout(() => setSavedLoginConfig(false), 3000);
   };
 
   const handleApplyPresetPijar = () => {
-    setHeaderTagline('PUSAT INFORMASI DAN JARINGAN BELAJAR');
-    setHeaderSchoolName('SMA NEGERI 1 BATANGAN');
-    setWelcomeTitle('Selamat Datang di PIJAR SMABA 👋');
-    setWelcomeSubtitle('Pusat Informasi dan Jaringan Belajar Smaba');
-    setFooterText('© 2026 PIJAR SMABA • SMA Negeri 1 Batangan');
+    const config: LoginPageConfig = {
+      headerTagline: 'PUSAT INFORMASI DAN JARINGAN BELAJAR',
+      headerSchoolName: 'SMA NEGERI 1 BATANGAN',
+      welcomeTitle: 'Selamat Datang di PIJAR SMABA 👋',
+      welcomeSubtitle: 'Pusat Informasi dan Jaringan Belajar Smaba',
+      footerText: '© 2026 PIJAR SMABA • SMA Negeri 1 Batangan',
+      leftLogoUrl,
+      rightLogoUrl,
+    };
+    setHeaderTagline(config.headerTagline);
+    setHeaderSchoolName(config.headerSchoolName);
+    setWelcomeTitle(config.welcomeTitle);
+    setWelcomeSubtitle(config.welcomeSubtitle);
+    setFooterText(config.footerText);
+
+    try {
+      localStorage.setItem('smaba_login_config', JSON.stringify(config));
+    } catch (e) {
+      console.warn(e);
+    }
+    if (onUpdateLoginConfig) {
+      onUpdateLoginConfig(config);
+    }
+    setSavedLoginConfig(true);
+    setTimeout(() => setSavedLoginConfig(false), 3000);
   };
 
   // EXCEL IMPORT & TEMPLATE DOWNLOAD
@@ -488,12 +798,40 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const handleConfirmImport = () => {
     if (importModal.parsedUsers.length === 0) return;
+    const newUsers = importModal.parsedUsers;
+
+    try {
+      let updated: User[];
+      if (importModal.replaceMode) {
+        updated = newUsers;
+      } else {
+        const map = new Map<string, User>();
+        usersList.forEach((u) => {
+          const key = u.username?.toLowerCase() || u.nip || u.id;
+          map.set(key, u);
+        });
+        newUsers.forEach((nu) => {
+          const key = nu.username?.toLowerCase() || nu.nip || nu.id;
+          map.set(key, nu);
+        });
+        updated = Array.from(map.values());
+      }
+      localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage save users error:', e);
+    }
 
     if (onBulkAddUsers) {
-      onBulkAddUsers(importModal.parsedUsers, importModal.replaceMode);
+      onBulkAddUsers(newUsers, importModal.replaceMode);
     } else if (onAddUser) {
-      importModal.parsedUsers.forEach((u) => onAddUser(u));
+      newUsers.forEach((u) => onAddUser(u));
     }
+
+    setUserActionFeedback({
+      type: 'success',
+      message: `✓ Sebanyak ${newUsers.length} akun guru berhasil diimpor & disimpan permanen ke sistem!`,
+    });
+    setTimeout(() => setUserActionFeedback(null), 5000);
 
     setImportModal({
       isOpen: false,
@@ -514,21 +852,52 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const handleSaveEditUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editUserModal.user || !onUpdateUser) return;
-    onUpdateUser(editUserModal.user);
+    const userToSave = { ...editUserModal.user };
+
+    try {
+      const updated = usersList.map((u) => (u.id === userToSave.id ? userToSave : u));
+      localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage save users error:', e);
+    }
+
+    onUpdateUser(userToSave);
+
+    setUserActionFeedback({
+      type: 'success',
+      message: `✓ Perubahan data & password pengguna "${userToSave.name}" berhasil disimpan permanen!`,
+    });
+    setTimeout(() => setUserActionFeedback(null), 5000);
+
     setEditUserModal({ isOpen: false, user: null });
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName || !formUsername || !formPassword || !onAddUser) return;
+    if (!formName.trim() || !formUsername.trim() || !formPassword.trim() || !onAddUser) {
+      setUserActionFeedback({
+        type: 'error',
+        message: 'Harap lengkapi Nama Lengkap, Username Login, dan Password!',
+      });
+      return;
+    }
+
+    const usernameClean = formUsername.toLowerCase().trim();
+    if (usersList.some((u) => u.username?.toLowerCase().trim() === usernameClean)) {
+      setUserActionFeedback({
+        type: 'error',
+        message: `Username "${usernameClean}" sudah terdaftar. Harap gunakan username lain.`,
+      });
+      return;
+    }
 
     const newUser: User = {
       id: `user-${Date.now()}`,
-      name: formName,
-      nip: formNip || `198${Math.floor(100000000000000 + Math.random() * 900000000000000)}`,
-      username: formUsername.toLowerCase().trim(),
+      name: formName.trim(),
+      nip: formNip.trim() || `198${Math.floor(100000000000000 + Math.random() * 900000000000000)}`,
+      username: usernameClean,
       password: formPassword.trim(),
-      email: formEmail || `${formUsername.toLowerCase().trim()}@sman1batangan.sch.id`,
+      email: formEmail.trim() || `${usernameClean}@sman1batangan.sch.id`,
       role: formRole,
       roleLabel:
         formRole === 'admin'
@@ -540,7 +909,21 @@ export const AdminView: React.FC<AdminViewProps> = ({
       status: 'Aktif',
     };
 
+    try {
+      const updated = [newUser, ...usersList];
+      localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage save users error:', e);
+    }
+
     onAddUser(newUser);
+
+    setUserActionFeedback({
+      type: 'success',
+      message: `✓ Akun pengguna "${newUser.name}" (Username: ${newUser.username}) berhasil dibuat dan disimpan permanen!`,
+    });
+    setTimeout(() => setUserActionFeedback(null), 5000);
+
     setIsAddUserModalOpen(false);
     setFormName('');
     setFormNip('');
@@ -551,9 +934,22 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const handleDeleteUserClick = (userId: string, userName: string) => {
     if (confirm(`Apakah Anda yakin ingin menghapus akun pengguna "${userName}"?`)) {
+      try {
+        const updated = usersList.filter((u) => u.id !== userId);
+        localStorage.setItem('smaba_users_list', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage save users error:', e);
+      }
+
       if (onDeleteUser) {
         onDeleteUser(userId);
       }
+
+      setUserActionFeedback({
+        type: 'success',
+        message: `✓ Akun pengguna "${userName}" berhasil dihapus dari sistem.`,
+      });
+      setTimeout(() => setUserActionFeedback(null), 4000);
     }
   };
 
@@ -637,6 +1033,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   };
 
   const handleSaveDirectives = () => {
+    try {
+      localStorage.setItem('smaba_kepsek_directives', kepsekDirectives);
+    } catch (e) {
+      console.warn('LocalStorage directives error:', e);
+    }
     setSavedDirectives(true);
     setTimeout(() => setSavedDirectives(false), 2500);
   };
@@ -925,43 +1326,127 @@ export const AdminView: React.FC<AdminViewProps> = ({
       <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm overflow-x-auto gap-1">
         <button
           onClick={() => setAdminTab('dashboard')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'dashboard'
               ? 'bg-[#0c397b] text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
-          <span>Dashboard Ringkasan & Statistik</span>
+          <span>Dashboard</span>
         </button>
 
         <button
           onClick={() => setAdminTab('users')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'users'
               ? 'bg-[#0c397b] text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Kelola Pengguna & Password Guru/Kepsek ({usersList.length})</span>
+          <span>Kelola Pengguna ({usersList.length})</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('jadwal')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'jadwal'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4" />
+          <span>Jadwal KBM & Piket</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('kaldik')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'kaldik'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>Kaldik & RME</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('struktur')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'struktur'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Struktur Kurikulum</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('sk')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'sk'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Scroll className="w-4 h-4" />
+          <span>SK Kurikulum</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('perangkat')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'perangkat'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <CloudUpload className="w-4 h-4" />
+          <span>Perangkat Ajar ({perangkatList.length})</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('data-guru')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'data-guru'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Monitor className="w-4 h-4" />
+          <span>Data Kelengkapan Guru</span>
+        </button>
+
+        <button
+          onClick={() => setAdminTab('kosp')}
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            adminTab === 'kosp'
+              ? 'bg-[#0c397b] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>KOSP SMABA</span>
         </button>
 
         <button
           onClick={() => setAdminTab('login-design')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'login-design'
               ? 'bg-[#0c397b] text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Palette className="w-4 h-4" />
-          <span>Desain, Logo & Teks Halaman Login</span>
+          <span>Desain Login</span>
         </button>
 
         <button
           onClick={() => setAdminTab('kurikulum')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'kurikulum'
               ? 'bg-[#0c397b] text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -973,7 +1458,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         <button
           onClick={() => setAdminTab('announcements')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+          className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             adminTab === 'announcements'
               ? 'bg-[#0c397b] text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -1001,6 +1486,31 @@ export const AdminView: React.FC<AdminViewProps> = ({
       ============================================================= */}
       {adminTab === 'users' && (
         <div className="space-y-4">
+          {userActionFeedback && (
+            <div
+              className={`p-4 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-bold shadow-xs border-2 animate-fade-in ${
+                userActionFeedback.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-900 border-emerald-400'
+                  : 'bg-rose-50 text-rose-900 border-rose-400'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                {userActionFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+                )}
+                <span>{userActionFeedback.message}</span>
+              </div>
+              <button
+                onClick={() => setUserActionFeedback(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Top Bar with Search & Action Buttons */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row gap-3 flex-1 max-w-2xl">
@@ -1194,6 +1704,104 @@ export const AdminView: React.FC<AdminViewProps> = ({
       )}
 
       {/* =============================================================
+          TAB: KELOLA JADWAL KBM & PIKET
+      ============================================================= */}
+      {adminTab === 'jadwal' && (
+        <AdminJadwalTab
+          schedulesList={schedulesList}
+          onAddSchedule={onAddSchedule}
+          onUpdateSchedule={onUpdateSchedule}
+          onDeleteSchedule={onDeleteSchedule}
+          onBulkAddSchedules={onBulkAddSchedules}
+          piketList={piketList}
+          onAddPiket={onAddPiket}
+          onUpdatePiket={onUpdatePiket}
+          onDeletePiket={onDeletePiket}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA KALDIK & RME
+      ============================================================= */}
+      {adminTab === 'kaldik' && (
+        <AdminKaldikTab
+          kaldikEventsList={kaldikEventsList}
+          onAddKaldikEvent={onAddKaldikEvent}
+          onUpdateKaldikEvent={onUpdateKaldikEvent}
+          onDeleteKaldikEvent={onDeleteKaldikEvent}
+          rmeList={rmeList}
+          onAddRmeRow={onAddRmeRow}
+          onUpdateRmeRow={onUpdateRmeRow}
+          onDeleteRmeRow={onDeleteRmeRow}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA STRUKTUR KURIKULUM
+      ============================================================= */}
+      {adminTab === 'struktur' && (
+        <AdminStrukturTab
+          strukturList={strukturList}
+          onAddMapelStruktur={onAddMapelStruktur}
+          onUpdateMapelStruktur={onUpdateMapelStruktur}
+          onDeleteMapelStruktur={onDeleteMapelStruktur}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA SK KURIKULUM
+      ============================================================= */}
+      {adminTab === 'sk' && (
+        <AdminSkTab
+          skList={skList}
+          onAddSk={onAddSk}
+          onUpdateSk={onUpdateSk}
+          onDeleteSk={onDeleteSk}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA & VALIDASI PERANGKAT AJAR
+      ============================================================= */}
+      {adminTab === 'perangkat' && (
+        <AdminPerangkatTab
+          perangkatList={perangkatList}
+          onAddPerangkat={onAddPerangkat}
+          onUpdatePerangkat={onUpdatePerangkat}
+          onDeletePerangkat={onDeletePerangkat}
+          onUpdatePerangkatStatus={onUpdatePerangkatStatus}
+          onOpenDocument={onOpenDocument}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA DATA KELENGKAPAN GURU
+      ============================================================= */}
+      {adminTab === 'data-guru' && (
+        <AdminDataGuruTab
+          teachersProgressList={teachersProgressList}
+          onAddTeacherProgress={onAddTeacherProgress}
+          onUpdateTeacherProgress={onUpdateTeacherProgress}
+          onDeleteTeacherProgress={onDeleteTeacherProgress}
+          onToggleTeacherChecklist={onToggleTeacherChecklist}
+        />
+      )}
+
+      {/* =============================================================
+          TAB: KELOLA KOSP SMABA
+      ============================================================= */}
+      {adminTab === 'kosp' && (
+        <AdminKospTab
+          kospData={kospData}
+          onUpdateKospDocument={onUpdateKospDocument}
+          onAddKospChapter={onAddKospChapter}
+          onUpdateKospChapter={onUpdateKospChapter}
+          onDeleteKospChapter={onDeleteKospChapter}
+          onOpenDocument={onOpenDocument}
+        />
+      )}
+
+      {/* =============================================================
           TAB 2: DESAIN & TEKS HALAMAN LOGIN + FASILITAS UPLOAD LOGO
       ============================================================= */}
       {adminTab === 'login-design' && (
@@ -1275,8 +1883,25 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     {leftLogoUrl && (
                       <button
                         type="button"
-                        onClick={() => setLeftLogoUrl('')}
-                        className="text-[10px] text-rose-600 hover:underline w-full text-center block"
+                        onClick={() => {
+                          setLeftLogoUrl('');
+                          const updatedConfig: LoginPageConfig = {
+                            headerTagline: headerTagline.trim(),
+                            headerSchoolName: headerSchoolName.trim(),
+                            welcomeTitle: welcomeTitle.trim(),
+                            welcomeSubtitle: welcomeSubtitle.trim(),
+                            footerText: footerText.trim(),
+                            leftLogoUrl: '',
+                            rightLogoUrl,
+                          };
+                          try {
+                            localStorage.setItem('smaba_login_config', JSON.stringify(updatedConfig));
+                          } catch (err) {
+                            console.warn(err);
+                          }
+                          if (onUpdateLoginConfig) onUpdateLoginConfig(updatedConfig);
+                        }}
+                        className="text-[10px] text-rose-600 hover:underline w-full text-center block cursor-pointer"
                       >
                         Reset ke Lambang SMABA Asli
                       </button>
@@ -1323,8 +1948,25 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     {rightLogoUrl && (
                       <button
                         type="button"
-                        onClick={() => setRightLogoUrl('')}
-                        className="text-[10px] text-rose-600 hover:underline w-full text-center block"
+                        onClick={() => {
+                          setRightLogoUrl('');
+                          const updatedConfig: LoginPageConfig = {
+                            headerTagline: headerTagline.trim(),
+                            headerSchoolName: headerSchoolName.trim(),
+                            welcomeTitle: welcomeTitle.trim(),
+                            welcomeSubtitle: welcomeSubtitle.trim(),
+                            footerText: footerText.trim(),
+                            leftLogoUrl,
+                            rightLogoUrl: '',
+                          };
+                          try {
+                            localStorage.setItem('smaba_login_config', JSON.stringify(updatedConfig));
+                          } catch (err) {
+                            console.warn(err);
+                          }
+                          if (onUpdateLoginConfig) onUpdateLoginConfig(updatedConfig);
+                        }}
+                        className="text-[10px] text-rose-600 hover:underline w-full text-center block cursor-pointer"
                       >
                         Reset ke Lambang PIJAR Asli
                       </button>
@@ -1360,14 +2002,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
             {/* SECTION 2: EDIT TEXT FORM */}
             <form onSubmit={handleSaveLoginConfig} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  1. Tagline Header (Bagian Atas Biru)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    1. Tagline Header (Bagian Atas Biru)
+                  </label>
+                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Auto-saved
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
                   value={headerTagline}
-                  onChange={(e) => setHeaderTagline(e.target.value)}
+                  onChange={(e) => updateLoginField('headerTagline', e.target.value)}
                   placeholder="Contoh: PUSAT INFORMASI DAN JARINGAN BELAJAR"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
                 />
@@ -1381,7 +2028,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   type="text"
                   required
                   value={headerSchoolName}
-                  onChange={(e) => setHeaderSchoolName(e.target.value)}
+                  onChange={(e) => updateLoginField('headerSchoolName', e.target.value)}
                   placeholder="Contoh: SMA NEGERI 1 BATANGAN"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
                 />
@@ -1395,7 +2042,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   type="text"
                   required
                   value={welcomeTitle}
-                  onChange={(e) => setWelcomeTitle(e.target.value)}
+                  onChange={(e) => updateLoginField('welcomeTitle', e.target.value)}
                   placeholder="Contoh: Selamat Datang di Siperwali 👋"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-[#0c397b] focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
                 />
@@ -1409,7 +2056,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   type="text"
                   required
                   value={welcomeSubtitle}
-                  onChange={(e) => setWelcomeSubtitle(e.target.value)}
+                  onChange={(e) => updateLoginField('welcomeSubtitle', e.target.value)}
                   placeholder="Contoh: Sistem Informasi Perwalian Siswa"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
                 />
@@ -1423,7 +2070,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   type="text"
                   required
                   value={footerText}
-                  onChange={(e) => setFooterText(e.target.value)}
+                  onChange={(e) => updateLoginField('footerText', e.target.value)}
                   placeholder="Contoh: © 2026 SIPERWALI • SMA Negeri 1 Batangan"
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0c397b]"
                 />
@@ -1554,14 +2201,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
               <form onSubmit={handleSaveSettings} className="space-y-4 text-xs sm:text-sm">
                 <div>
-                  <label className="block font-bold text-slate-700 uppercase text-[11px] mb-1">
-                    1. Tahun Pelajaran
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-bold text-slate-700 uppercase text-[11px]">
+                      1. Tahun Pelajaran
+                    </label>
+                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Auto-saved
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
                     value={academicYear}
-                    onChange={(e) => setAcademicYear(e.target.value)}
+                    onChange={(e) => updateAcademicField('academicYear', e.target.value)}
                     placeholder="Contoh: 2024/2025"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
                   />
@@ -1573,7 +2225,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   </label>
                   <select
                     value={semester}
-                    onChange={(e) => setSemester(e.target.value as any)}
+                    onChange={(e) => updateAcademicField('semester', e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-bold text-slate-800"
                   >
                     <option value="Ganjil">Semester Ganjil</option>
@@ -1589,7 +2241,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     type="number"
                     required
                     value={maxJp}
-                    onChange={(e) => setMaxJp(e.target.value)}
+                    onChange={(e) => updateAcademicField('maxJp', e.target.value)}
                     placeholder="Contoh: 40"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
                   />
@@ -1603,7 +2255,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     type="text"
                     required
                     value={curriculumName}
-                    onChange={(e) => setCurriculumName(e.target.value)}
+                    onChange={(e) => updateAcademicField('curriculumName', e.target.value)}
                     placeholder="Contoh: Kurikulum Merdeka Mandiri Berbagi"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
                   />
@@ -1616,7 +2268,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <input
                     type="date"
                     value={uploadDeadline}
-                    onChange={(e) => setUploadDeadline(e.target.value)}
+                    onChange={(e) => updateAcademicField('uploadDeadline', e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
                   />
                 </div>
@@ -1629,7 +2281,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     type="text"
                     required
                     value={wakaKurikulumName}
-                    onChange={(e) => setWakaKurikulumName(e.target.value)}
+                    onChange={(e) => updateAcademicField('wakaKurikulumName', e.target.value)}
                     placeholder="Contoh: Supriyanto, S.Pd., M.Si."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0c397b] font-medium"
                   />
@@ -1693,14 +2345,32 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setAcademicYear('2024/2025');
-                    setSemester('Genap');
-                    setMaxJp('40');
-                    setCurriculumName('Kurikulum Merdeka Mandiri Berbagi');
-                    setUploadDeadline('2025-01-31');
-                    setWakaKurikulumName('Supriyanto, S.Pd., M.Si.');
+                    const defaultSettings: AcademicSettings = {
+                      academicYear: '2024/2025',
+                      semester: 'Genap',
+                      maxJp: '40',
+                      curriculumName: 'Kurikulum Merdeka Mandiri Berbagi',
+                      uploadDeadline: '2025-01-31',
+                      wakaKurikulumName: 'Supriyanto, S.Pd., M.Si.',
+                    };
+                    setAcademicYear(defaultSettings.academicYear || '2024/2025');
+                    setSemester(defaultSettings.semester || 'Genap');
+                    setMaxJp(defaultSettings.maxJp || '40');
+                    setCurriculumName(defaultSettings.curriculumName || 'Kurikulum Merdeka Mandiri Berbagi');
+                    setUploadDeadline(defaultSettings.uploadDeadline || '2025-01-31');
+                    setWakaKurikulumName(defaultSettings.wakaKurikulumName || 'Supriyanto, S.Pd., M.Si.');
+                    try {
+                      localStorage.setItem('smaba_academic_settings', JSON.stringify(defaultSettings));
+                    } catch (e) {
+                      console.warn(e);
+                    }
+                    if (onUpdateAcademicSettings) {
+                      onUpdateAcademicSettings(defaultSettings);
+                    }
+                    setSavedSettings(true);
+                    setTimeout(() => setSavedSettings(false), 3000);
                   }}
-                  className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                   <span>Pulihkan ke Standar SMABA</span>

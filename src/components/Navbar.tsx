@@ -11,7 +11,7 @@ import {
   Award,
   BookOpen
 } from 'lucide-react';
-import { MenuKey, User as CurrentUser, UserRole } from '../types';
+import { MenuKey, User as CurrentUser, UserRole, AcademicSettings } from '../types';
 import { User as FirebaseUser } from 'firebase/auth';
 import { DEMO_USERS, ROLE_DETAILS } from '../data/mockData';
 
@@ -24,6 +24,7 @@ interface NavbarProps {
   googleUser: FirebaseUser | null;
   onOpenSheetsModal: () => void;
   onSwitchUserRole?: (role: UserRole) => void;
+  academicSettings?: AcademicSettings;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -35,11 +36,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   googleUser,
   onOpenSheetsModal,
   onSwitchUserRole,
+  academicSettings,
 }) => {
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
 
   const currentRole: UserRole = currentUser?.role || 'guru';
   const roleConfig = ROLE_DETAILS[currentRole];
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
 
   const getMenuTitle = (key: MenuKey | null, role: UserRole) => {
     switch (key) {
@@ -137,9 +141,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 SB
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-xs font-bold text-sky-400">SMAN 1 BATANGAN</span>
                   <span className="text-[10px] text-slate-400 hidden md:inline">• PIJAR</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 hidden lg:inline">
+                    TA {activeYear} • Smt {activeSemester}
+                  </span>
                 </div>
                 <h1 className="text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-xs md:max-w-none">
                   {getMenuTitle(currentMenu, currentRole)}

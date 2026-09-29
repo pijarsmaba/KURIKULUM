@@ -8,7 +8,13 @@ import {
   UserRole,
   Announcement,
   LoginPageConfig,
-  AcademicSettings
+  AcademicSettings,
+  ScheduleItem,
+  PiketItem,
+  KaldikEvent,
+  RmeRow,
+  MapelStruktur,
+  KospDocumentInfo
 } from '../types';
 
 export const DEFAULT_ACADEMIC_SETTINGS: AcademicSettings = {
@@ -1052,3 +1058,223 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     author: 'Koordinator P5',
   },
 ];
+
+export const INITIAL_SCHEDULES: ScheduleItem[] = [
+  // Senin
+  { id: 'sch-01', hari: 'Senin', kelas: 'X-1', jam: '0', waktu: '06.45 - 07.30', mapel: 'Upacara Bendera / Apel Pagi', guru: 'Seluruh Pembina & Wali Kelas', ruang: 'Lapangan Utama' },
+  { id: 'sch-02', hari: 'Senin', kelas: 'X-1', jam: '1 - 2', waktu: '07.30 - 09.00', mapel: 'Pendidikan Agama & Budi Pekerti', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'R. 101' },
+  { id: 'sch-03', hari: 'Senin', kelas: 'X-1', jam: '3 - 4', waktu: '09.00 - 10.30', mapel: 'Bahasa Indonesia', guru: 'Dra. Hj. Siti Rahayu, M.Pd.', ruang: 'R. 101' },
+  { id: 'sch-04', hari: 'Senin', kelas: 'X-1', jam: 'Ist 1', waktu: '10.30 - 10.50', mapel: 'Istirahat Pertama & Sholat Dhuha', guru: '-', ruang: 'Masjid SMABA' },
+  { id: 'sch-05', hari: 'Senin', kelas: 'X-1', jam: '5 - 6', waktu: '10.50 - 12.20', mapel: 'Matematika Umum', guru: 'Bambang Triyono, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-06', hari: 'Senin', kelas: 'X-1', jam: 'Ist 2', waktu: '12.20 - 13.00', mapel: 'Istirahat Kedua & Sholat Dhuhur Berjamaah', guru: '-', ruang: 'Masjid SMABA' },
+  { id: 'sch-07', hari: 'Senin', kelas: 'X-1', jam: '7 - 8', waktu: '13.00 - 14.30', mapel: 'Informatika', guru: 'Agus Wibowo, S.Kom.', ruang: 'Lab Komputer 1' },
+  { id: 'sch-08', hari: 'Senin', kelas: 'X-1', jam: '9', waktu: '14.30 - 15.15', mapel: 'Bimbingan Konseling (BK)', guru: 'Rina Kusuma Dewi, S.Pd.', ruang: 'R. 101' },
+  // Selasa
+  { id: 'sch-09', hari: 'Selasa', kelas: 'X-1', jam: '0', waktu: '06.45 - 07.15', mapel: 'Gerakan Literasi Sekolah / Doa Pagi', guru: 'Wali Kelas X-1', ruang: 'R. 101' },
+  { id: 'sch-10', hari: 'Selasa', kelas: 'X-1', jam: '1 - 3', waktu: '07.15 - 09.30', mapel: 'Fisika (IPA)', guru: 'Supriyanto, S.Pd., M.Si.', ruang: 'Lab Fisika' },
+  { id: 'sch-11', hari: 'Selasa', kelas: 'X-1', jam: '4 - 5', waktu: '09.30 - 11.00', mapel: 'Bahasa Inggris', guru: 'Farida Arisanti, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-12', hari: 'Selasa', kelas: 'X-1', jam: 'Ist 1', waktu: '11.00 - 11.20', mapel: 'Istirahat & Kudapan', guru: '-', ruang: 'Kantin Sekolah' },
+  { id: 'sch-13', hari: 'Selasa', kelas: 'X-1', jam: '6 - 7', waktu: '11.20 - 12.50', mapel: 'Biologi (IPA)', guru: 'Tri Astuti, S.Pd.', ruang: 'Lab Biologi' },
+  { id: 'sch-14', hari: 'Selasa', kelas: 'X-1', jam: 'Ist 2', waktu: '12.50 - 13.30', mapel: 'Sholat Dhuhur', guru: '-', ruang: 'Masjid SMABA' },
+  { id: 'sch-15', hari: 'Selasa', kelas: 'X-1', jam: '8 - 9', waktu: '13.30 - 15.00', mapel: 'Seni Budaya', guru: 'Dewi Anggraeni, S.Pd.', ruang: 'R. Musik' },
+  // Rabu
+  { id: 'sch-16', hari: 'Rabu', kelas: 'X-1', jam: '0', waktu: '06.45 - 07.15', mapel: 'Senam Pagi Kesegaran Jasmani', guru: 'M. Dian Pratama, S.Pd.', ruang: 'Lapangan' },
+  { id: 'sch-17', hari: 'Rabu', kelas: 'X-1', jam: '1 - 3', waktu: '07.15 - 09.30', mapel: 'PJOK', guru: 'M. Dian Pratama, S.Pd.', ruang: 'Lapangan Olahraga' },
+  { id: 'sch-18', hari: 'Rabu', kelas: 'X-1', jam: '4 - 5', waktu: '09.30 - 11.00', mapel: 'Kimia (IPA)', guru: 'Nurul Hidayati, S.Si., M.Pd.', ruang: 'Lab Kimia' },
+  { id: 'sch-19', hari: 'Rabu', kelas: 'X-1', jam: 'Ist 1', waktu: '11.00 - 11.20', mapel: 'Istirahat Pertama', guru: '-', ruang: 'Kantin' },
+  { id: 'sch-20', hari: 'Rabu', kelas: 'X-1', jam: '6 - 7', waktu: '11.20 - 12.50', mapel: 'Pendidikan Pancasila', guru: 'Hery Santoso, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-21', hari: 'Rabu', kelas: 'X-1', jam: 'Ist 2', waktu: '12.50 - 13.30', mapel: 'Sholat Dhuhur Berjamaah', guru: '-', ruang: 'Masjid' },
+  { id: 'sch-22', hari: 'Rabu', kelas: 'X-1', jam: '8 - 9', waktu: '13.30 - 15.00', mapel: 'Muatan Lokal (Bahasa Jawa)', guru: 'Sri Wahyuningsih, S.Pd.', ruang: 'R. 101' },
+  // Kamis
+  { id: 'sch-23', hari: 'Kamis', kelas: 'X-1', jam: '0', waktu: '06.45 - 07.15', mapel: 'Asmaul Husna & Tadarus Al-Qur\'an', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'R. 101' },
+  { id: 'sch-24', hari: 'Kamis', kelas: 'X-1', jam: '1 - 2', waktu: '07.15 - 08.45', mapel: 'Sosiologi (IPS)', guru: 'Drs. Joko Prasetyo', ruang: 'R. 101' },
+  { id: 'sch-25', hari: 'Kamis', kelas: 'X-1', jam: '3 - 4', waktu: '08.45 - 10.15', mapel: 'Ekonomi (IPS)', guru: 'Endang Sulistyowati, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-26', hari: 'Kamis', kelas: 'X-1', jam: 'Ist 1', waktu: '10.15 - 10.35', mapel: 'Istirahat', guru: '-', ruang: 'Kantin' },
+  { id: 'sch-27', hari: 'Kamis', kelas: 'X-1', jam: '5 - 6', waktu: '10.35 - 12.05', mapel: 'Geografi (IPS)', guru: 'Sunardi, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-28', hari: 'Kamis', kelas: 'X-1', jam: 'Ist 2', waktu: '12.05 - 12.45', mapel: 'Sholat Dhuhur', guru: '-', ruang: 'Masjid' },
+  { id: 'sch-29', hari: 'Kamis', kelas: 'X-1', jam: '7 - 8', waktu: '12.45 - 14.15', mapel: 'Sejarah Indonesia', guru: 'Budi Raharjo, S.Pd.', ruang: 'R. 101' },
+  { id: 'sch-30', hari: 'Kamis', kelas: 'X-1', jam: '9', waktu: '14.15 - 15.00', mapel: 'Pendampingan Karakter', guru: 'Wali Kelas', ruang: 'R. 101' },
+  // Jumat
+  { id: 'sch-31', hari: 'Jumat', kelas: 'X-1', jam: '0', waktu: '06.45 - 07.15', mapel: 'Jumat Bersih & Budaya Adiwiyata', guru: 'Tim Adiwiyata SMABA', ruang: 'Area Kelas' },
+  { id: 'sch-32', hari: 'Jumat', kelas: 'X-1', jam: '1 - 4', waktu: '07.15 - 10.15', mapel: 'Projek Penguatan Profil Pelajar Pancasila (P5)', guru: 'Fasilitator P5', ruang: 'Aula SMABA' },
+  { id: 'sch-33', hari: 'Jumat', kelas: 'X-1', jam: 'Ist', waktu: '10.15 - 10.35', mapel: 'Istirahat', guru: '-', ruang: 'Kantin' },
+  { id: 'sch-34', hari: 'Jumat', kelas: 'X-1', jam: '5 - 6', waktu: '10.35 - 11.45', mapel: 'Lanjutan Pembahasan Projek P5', guru: 'Fasilitator P5', ruang: 'Aula SMABA' },
+  { id: 'sch-35', hari: 'Jumat', kelas: 'X-1', jam: 'Sholat', waktu: '11.45 - 13.00', mapel: 'Persiapan & Sholat Jumat Berjamaah', guru: 'Ahmad Faiz, S.Pd.I.', ruang: 'Masjid' },
+  { id: 'sch-36', hari: 'Jumat', kelas: 'X-1', jam: '7 - 8', waktu: '13.00 - 14.30', mapel: 'Ekstrakurikuler Wajib Kepramukaan', guru: 'Pembina Pramuka', ruang: 'Lapangan Utama' },
+];
+
+export const INITIAL_PIKET: PiketItem[] = [
+  {
+    id: 'pkt-01',
+    hari: 'Senin',
+    koordinator: 'Dra. Hj. Siti Rahayu, M.Pd.',
+    anggota: ['Bambang Triyono, S.Pd.', 'Ahmad Faiz, S.Pd.I.', 'Farida Arisanti, S.Pd.'],
+    tugasUtama: 'Pemeriksaan ketertiban gerbang pagi (06.30 - 07.00), absensi KBM jam 1-4, & penanganan dispensasi siswa.',
+  },
+  {
+    id: 'pkt-02',
+    hari: 'Selasa',
+    koordinator: 'Supriyanto, S.Pd., M.Si.',
+    anggota: ['Tri Astuti, S.Pd.', 'Nurul Hidayati, S.Si.', 'Agus Wibowo, S.Kom.'],
+    tugasUtama: 'Monitoring ketertiban laboratorium IPA, rekap keterlambatan kelas, & koordinasi guru pengganti.',
+  },
+  {
+    id: 'pkt-03',
+    hari: 'Rabu',
+    koordinator: 'M. Dian Pratama, S.Pd.',
+    anggota: ['Hery Santoso, S.Pd.', 'Sri Wahyuningsih, S.Pd.', 'Dewi Anggraeni, S.Pd.'],
+    tugasUtama: 'Pengawasan area lapangan olahraga saat senam pagi & patroli ketertiban lingkungan kantin saat istirahat.',
+  },
+  {
+    id: 'pkt-04',
+    hari: 'Kamis',
+    koordinator: 'Drs. Joko Prasetyo',
+    anggota: ['Endang Sulistyowati, S.Pd.', 'Sunardi, S.Pd.', 'Budi Raharjo, S.Pd.'],
+    tugasUtama: 'Pemeriksaan kebersihan kelas Adiwiyata & piket literasi perpustakaan sekolah.',
+  },
+  {
+    id: 'pkt-05',
+    hari: 'Jumat',
+    koordinator: 'Ahmad Faiz, S.Pd.I.',
+    anggota: ['Rina Kusuma Dewi, S.Pd.', 'Tim Guru Pembina Ekstrakurikuler'],
+    tugasUtama: 'Monitoring kesiapan Sholat Jumat berjamaah di Masjid SMABA & pendampingan kegiatan Pramuka sore.',
+  },
+];
+
+export const INITIAL_KALDIK_EVENTS: KaldikEvent[] = [
+  // Ganjil
+  { id: 'kld-01', date: '15 Juli 2024', event: 'Hari Pertama Masuk Sekolah Semester Ganjil', type: 'kbm', semester: 'Ganjil' },
+  { id: 'kld-02', date: '15 - 19 Juli 2024', event: 'Masa Pengenalan Lingkungan Sekolah (MPLS) Ramah Anak', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-03', date: '17 Agustus 2024', event: 'Peringatan HUT Kemerdekaan RI ke-79', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-04', date: '16 - 21 September 2024', event: 'Asesmen Sumatif Tengah Semester (ASTS) Ganjil', type: 'asesmen', semester: 'Ganjil' },
+  { id: 'kld-05', date: '16 September 2024', event: 'Maulid Nabi Muhammad SAW (Libur Nasional)', type: 'libur', semester: 'Ganjil' },
+  { id: 'kld-06', date: '21 - 25 Oktober 2024', event: 'Gelar Karya Projek P5 Tema Kearifan Lokal', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-07', date: '28 Oktober 2024', event: 'Upacara Peringatan Hari Sumpah Pemuda', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-08', date: '25 November 2024', event: 'Peringatan Hari Guru Nasional & PGRI', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-09', date: '02 - 13 Desember 2024', event: 'Asesmen Sumatif Akhir Semester (ASAS) Ganjil', type: 'asesmen', semester: 'Ganjil' },
+  { id: 'kld-10', date: '20 Desember 2024', event: 'Penyerahan Buku Laporan Hasil Belajar (Rapor) Semester Ganjil', type: 'kegiatan', semester: 'Ganjil' },
+  { id: 'kld-11', date: '23 Desember 2024 - 04 Januari 2025', event: 'Libur Akhir Semester Ganjil', type: 'libur', semester: 'Ganjil' },
+  // Genap
+  { id: 'kld-12', date: '06 Januari 2025', event: 'Hari Pertama Masuk Sekolah Semester Genap', type: 'kbm', semester: 'Genap' },
+  { id: 'kld-13', date: '06 - 17 Januari 2025', event: 'Verifikasi dan Supervisi Perangkat Ajar Kurikulum Merdeka', type: 'kegiatan', semester: 'Genap' },
+  { id: 'kld-14', date: '27 Januari 2025', event: 'Peringatan Isra Mi\'raj Nabi Muhammad SAW (Libur Nasional)', type: 'libur', semester: 'Genap' },
+  { id: 'kld-15', date: '29 Januari 2025', event: 'Tahun Baru Imlek 2576 Kongzili (Libur Nasional)', type: 'libur', semester: 'Genap' },
+  { id: 'kld-16', date: '17 - 22 Februari 2025', event: 'Simulasi dan Pendalaman Materi Ujian Sekolah Kelas XII', type: 'kegiatan', semester: 'Genap' },
+  { id: 'kld-17', date: '03 - 08 Maret 2025', event: 'Asesmen Sumatif Tengah Semester (ASTS) Genap', type: 'asesmen', semester: 'Genap' },
+  { id: 'kld-18', date: '17 - 28 Maret 2025', event: 'Asesmen Sumatif Akhir Jenjang (ASAJ / US) Kelas XII', type: 'asesmen', semester: 'Genap' },
+  { id: 'kld-19', date: '29 Maret - 05 April 2025', event: 'Libur Hari Raya Idul Fitri 1446 H & Cuti Bersama', type: 'libur', semester: 'Genap' },
+  { id: 'kld-20', date: '02 Mei 2025', event: 'Upacara Hari Pendidikan Nasional (Hardiknas)', type: 'kegiatan', semester: 'Genap' },
+  { id: 'kld-21', date: '05 Mei 2025', event: 'Pengumuman Kelulusan Peserta Didik Kelas XII', type: 'kegiatan', semester: 'Genap' },
+  { id: 'kld-22', date: '02 - 13 Juni 2025', event: 'Asesmen Sumatif Akhir Tahun (ASAT) Kelas X & XI', type: 'asesmen', semester: 'Genap' },
+  { id: 'kld-23', date: '20 Juni 2025', event: 'Penyerahan Buku Laporan Hasil Belajar (Rapor) Semester Genap', type: 'kegiatan', semester: 'Genap' },
+  { id: 'kld-24', date: '23 Juni - 12 Juli 2025', event: 'Libur Akhir Tahun Ajaran', type: 'libur', semester: 'Genap' },
+];
+
+export const INITIAL_RME_DATA: RmeRow[] = [
+  // Semester Genap
+  { id: 'rme-01', no: 1, bulan: 'Januari 2025', jmlMinggu: 5, tdkEfektif: 1, efektif: 4, ket: 'Awal KBM Genap, Libur Imlek & Isra Miraj', semester: 'Genap' },
+  { id: 'rme-02', no: 2, bulan: 'Februari 2025', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif Penuh, Try Out Kelas XII', semester: 'Genap' },
+  { id: 'rme-03', no: 3, bulan: 'Maret 2025', jmlMinggu: 4, tdkEfektif: 2, efektif: 2, ket: 'ASTS Genap & ASAJ Kelas XII, Libur Idul Fitri', semester: 'Genap' },
+  { id: 'rme-04', no: 4, bulan: 'April 2025', jmlMinggu: 5, tdkEfektif: 1, efektif: 4, ket: 'KBM Efektif, Halal Bihalal', semester: 'Genap' },
+  { id: 'rme-05', no: 5, bulan: 'Mei 2025', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif, Hardiknas, Pengumuman Lulus', semester: 'Genap' },
+  { id: 'rme-06', no: 6, bulan: 'Juni 2025', jmlMinggu: 4, tdkEfektif: 2, efektif: 2, ket: 'ASAT Kelas X & XI, Pengolahan Rapor, Libur Smt', semester: 'Genap' },
+  // Semester Ganjil
+  { id: 'rme-07', no: 1, bulan: 'Juli 2024', jmlMinggu: 5, tdkEfektif: 2, efektif: 3, ket: 'Awal Masuk, MPLS Ramah Anak', semester: 'Ganjil' },
+  { id: 'rme-08', no: 2, bulan: 'Agustus 2024', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif, HUT Kemerdekaan RI', semester: 'Ganjil' },
+  { id: 'rme-09', no: 3, bulan: 'September 2024', jmlMinggu: 4, tdkEfektif: 1, efektif: 3, ket: 'ASTS Ganjil, Maulid Nabi SAW', semester: 'Ganjil' },
+  { id: 'rme-10', no: 4, bulan: 'Oktober 2024', jmlMinggu: 5, tdkEfektif: 1, efektif: 4, ket: 'Gelar Karya Projek P5, Sumpah Pemuda', semester: 'Ganjil' },
+  { id: 'rme-11', no: 5, bulan: 'November 2024', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif Penuh, Hari Guru', semester: 'Ganjil' },
+  { id: 'rme-12', no: 6, bulan: 'Desember 2024', jmlMinggu: 4, tdkEfektif: 2, efektif: 2, ket: 'ASAS Ganjil, Pembagian Rapor, Libur Smt', semester: 'Ganjil' },
+];
+
+export const INITIAL_STRUKTUR_DATA: MapelStruktur[] = [
+  // Kelas X (Fase E)
+  { id: 'str-x-01', no: 1, fase: 'X', mapel: 'Pendidikan Agama Islam dan Budi Pekerti', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-x-02', no: 2, fase: 'X', mapel: 'Pendidikan Pancasila', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-x-03', no: 3, fase: 'X', mapel: 'Bahasa Indonesia', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-x-04', no: 4, fase: 'X', mapel: 'Matematika', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-x-05', no: 5, fase: 'X', mapel: 'IPA (Fisika, Kimia, Biologi Terpadu)', intra: 216, p5: 72, total: 288, mingguan: 8, kategori: 'Umum' },
+  { id: 'str-x-06', no: 6, fase: 'X', mapel: 'IPS (Sosiologi, Ekonomi, Sejarah, Geografi)', intra: 216, p5: 72, total: 288, mingguan: 8, kategori: 'Umum' },
+  { id: 'str-x-07', no: 7, fase: 'X', mapel: 'Bahasa Inggris', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-x-08', no: 8, fase: 'X', mapel: 'Pendidikan Jasmani, Olahraga, dan Kesehatan (PJOK)', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-x-09', no: 9, fase: 'X', mapel: 'Informatika', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-x-10', no: 10, fase: 'X', mapel: 'Seni dan Prakarya (Seni Rupa / Seni Musik)', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-x-11', no: 11, fase: 'X', mapel: 'Muatan Lokal (Bahasa Jawa)', intra: 72, p5: 0, total: 72, mingguan: 2, kategori: 'Mulok' },
+  { id: 'str-x-12', no: 12, fase: 'X', mapel: 'Bimbingan Konseling (BK)', intra: 36, p5: 0, total: 36, mingguan: 1, kategori: 'BK' },
+
+  // Kelas XI (Fase F)
+  { id: 'str-xi-01', no: 1, fase: 'XI', mapel: 'Pendidikan Agama Islam dan Budi Pekerti', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xi-02', no: 2, fase: 'XI', mapel: 'Pendidikan Pancasila', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-xi-03', no: 3, fase: 'XI', mapel: 'Bahasa Indonesia', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-xi-04', no: 4, fase: 'XI', mapel: 'Matematika Umum', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-xi-05', no: 5, fase: 'XI', mapel: 'Bahasa Inggris', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xi-06', no: 6, fase: 'XI', mapel: 'PJOK', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xi-07', no: 7, fase: 'XI', mapel: 'Sejarah', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-xi-08', no: 8, fase: 'XI', mapel: 'Seni Budaya', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-xi-09', no: 9, fase: 'XI', mapel: 'Mata Pelajaran Pilihan 1 (e.g., Fisika / Sosiologi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xi-10', no: 10, fase: 'XI', mapel: 'Mata Pelajaran Pilihan 2 (e.g., Kimia / Ekonomi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xi-11', no: 11, fase: 'XI', mapel: 'Mata Pelajaran Pilihan 3 (e.g., Biologi / Geografi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xi-12', no: 12, fase: 'XI', mapel: 'Mata Pelajaran Pilihan 4 (e.g., Matematika Lanjut / Informatika)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xi-13', no: 13, fase: 'XI', mapel: 'Muatan Lokal (Bahasa Jawa)', intra: 72, p5: 0, total: 72, mingguan: 2, kategori: 'Mulok' },
+
+  // Kelas XII (Fase F)
+  { id: 'str-xii-01', no: 1, fase: 'XII', mapel: 'Pendidikan Agama Islam dan Budi Pekerti', intra: 64, p5: 32, total: 96, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xii-02', no: 2, fase: 'XII', mapel: 'Pendidikan Pancasila', intra: 48, p5: 16, total: 64, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-xii-03', no: 3, fase: 'XII', mapel: 'Bahasa Indonesia', intra: 96, p5: 32, total: 128, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-xii-04', no: 4, fase: 'XII', mapel: 'Matematika Umum', intra: 96, p5: 32, total: 128, mingguan: 4, kategori: 'Umum' },
+  { id: 'str-xii-05', no: 5, fase: 'XII', mapel: 'Bahasa Inggris', intra: 64, p5: 32, total: 96, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xii-06', no: 6, fase: 'XII', mapel: 'PJOK', intra: 64, p5: 32, total: 96, mingguan: 3, kategori: 'Umum' },
+  { id: 'str-xii-07', no: 7, fase: 'XII', mapel: 'Sejarah', intra: 48, p5: 16, total: 64, mingguan: 2, kategori: 'Umum' },
+  { id: 'str-xii-08', no: 8, fase: 'XII', mapel: 'Mata Pelajaran Pilihan 1 (e.g., Fisika / Sosiologi)', intra: 160, p5: 0, total: 160, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xii-09', no: 9, fase: 'XII', mapel: 'Mata Pelajaran Pilihan 2 (e.g., Kimia / Ekonomi)', intra: 160, p5: 0, total: 160, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xii-10', no: 10, fase: 'XII', mapel: 'Mata Pelajaran Pilihan 3 (e.g., Biologi / Geografi)', intra: 160, p5: 0, total: 160, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xii-11', no: 11, fase: 'XII', mapel: 'Mata Pelajaran Pilihan 4 (e.g., Matematika Lanjut / Informatika)', intra: 160, p5: 0, total: 160, mingguan: 5, kategori: 'Pilihan' },
+  { id: 'str-xii-12', no: 12, fase: 'XII', mapel: 'Muatan Lokal (Bahasa Jawa)', intra: 64, p5: 0, total: 64, mingguan: 2, kategori: 'Mulok' },
+];
+
+export const INITIAL_KOSP_DOCUMENT: KospDocumentInfo = {
+  title: 'Kurikulum Operasional Satuan Pendidikan (KOSP) SMA Negeri 1 Batangan',
+  subtitle: 'Panduan Penyelenggaraan Kurikulum Merdeka Terintegrasi Kearifan Lokal Pesisir Garam Batangan',
+  skPengesahan: 'No. 421.3 / 219 / 2024',
+  lastUpdated: '15 Juli 2024',
+  fileName: 'KOSP_SMAN_1_BATANGAN_2024_2025_LENGKAP.pdf',
+  fileSize: '4.8 MB',
+  chapters: [
+    {
+      id: 'kosp-ch-1',
+      no: 'BAB I',
+      title: 'Karakteristik Satuan Pendidikan',
+      pages: 'Halaman 1 - 24',
+      desc: 'Analisis konteks lingkungan pesisir pantai & sentra garam Batangan Kab. Pati, peta sosiokultural siswa, dan kemitraan masyarakat.',
+    },
+    {
+      id: 'kosp-ch-2',
+      no: 'BAB II',
+      title: 'Visi, Misi, dan Tujuan Satuan Pendidikan',
+      pages: 'Halaman 25 - 38',
+      desc: 'Rumusan Visi SMABA Berkarakter, Berprestasi, Berwawasan Lingkungan, serta sasaran strategis jangka pendek & menengah.',
+    },
+    {
+      id: 'kosp-ch-3',
+      no: 'BAB III',
+      title: 'Pengorganisasian Pembelajaran',
+      pages: 'Halaman 39 - 82',
+      desc: 'Intrakurikuler (Fase E & F), Kokurikuler P5 (3 Tema Utama), Ekstrakurikuler Wajib Pramuka & Pilihan, serta Program Pembiasaan.',
+    },
+    {
+      id: 'kosp-ch-4',
+      no: 'BAB IV',
+      title: 'Perencanaan Pembelajaran & Asesmen',
+      pages: 'Halaman 83 - 120',
+      desc: 'Alur Tujuan Pembelajaran (ATP), Modul Ajar berdiferensiasi, Asesmen Diagnostik, Formatif, Sumatif (ASTS, ASAS, ASAT, ASAJ).',
+    },
+    {
+      id: 'kosp-ch-5',
+      no: 'BAB V',
+      title: 'Pendampingan, Evaluasi, dan Pengembangan Profesional',
+      pages: 'Halaman 121 - 145',
+      desc: 'Supervisi akademik Kepala Sekolah, Komunitas Belajar (Kombel) SMABA, evaluasi kurikulum berkala per semester.',
+    },
+  ],
+};
+

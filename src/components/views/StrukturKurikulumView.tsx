@@ -1,41 +1,23 @@
 import React, { useState } from 'react';
 import { Layers, Download, Filter, HelpCircle, Check, Info } from 'lucide-react';
+import { AcademicSettings, MapelStruktur } from '../../types';
+import { INITIAL_STRUKTUR_DATA } from '../../data/mockData';
 
-export const StrukturKurikulumView: React.FC = () => {
+interface StrukturKurikulumViewProps {
+  academicSettings?: AcademicSettings;
+  strukturList?: MapelStruktur[];
+}
+
+export const StrukturKurikulumView: React.FC<StrukturKurikulumViewProps> = ({
+  academicSettings,
+  strukturList = INITIAL_STRUKTUR_DATA,
+}) => {
   const [selectedPhase, setSelectedPhase] = useState<'X' | 'XI' | 'XII'>('X');
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeCurriculum = academicSettings?.curriculumName || 'Kurikulum Merdeka';
 
-  const strukturKelasX = [
-    { no: 1, mapel: 'Pendidikan Agama Islam dan Budi Pekerti', intra: 72, p5: 36, total: 108, mingguan: 3 },
-    { no: 2, mapel: 'Pendidikan Pancasila', intra: 54, p5: 18, total: 72, mingguan: 2 },
-    { no: 3, mapel: 'Bahasa Indonesia', intra: 108, p5: 36, total: 144, mingguan: 4 },
-    { no: 4, mapel: 'Matematika', intra: 108, p5: 36, total: 144, mingguan: 4 },
-    { no: 5, mapel: 'IPA (Fisika, Kimia, Biologi Terpadu)', intra: 216, p5: 72, total: 288, mingguan: 8 },
-    { no: 6, mapel: 'IPS (Sosiologi, Ekonomi, Sejarah, Geografi)', intra: 216, p5: 72, total: 288, mingguan: 8 },
-    { no: 7, mapel: 'Bahasa Inggris', intra: 54, p5: 18, total: 72, mingguan: 2 },
-    { no: 8, mapel: 'Pendidikan Jasmani, Olahraga, dan Kesehatan (PJOK)', intra: 72, p5: 36, total: 108, mingguan: 3 },
-    { no: 9, mapel: 'Informatika', intra: 72, p5: 36, total: 108, mingguan: 3 },
-    { no: 10, mapel: 'Seni dan Prakarya (Seni Rupa / Seni Musik)', intra: 54, p5: 18, total: 72, mingguan: 2 },
-    { no: 11, mapel: 'Muatan Lokal (Bahasa Jawa)', intra: 72, p5: 0, total: 72, mingguan: 2 },
-    { no: 12, mapel: 'Bimbingan Konseling (BK)', intra: 36, p5: 0, total: 36, mingguan: 1 },
-  ];
-
-  const strukturKelasXI = [
-    { no: 1, mapel: 'Pendidikan Agama Islam dan Budi Pekerti', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
-    { no: 2, mapel: 'Pendidikan Pancasila', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
-    { no: 3, mapel: 'Bahasa Indonesia', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
-    { no: 4, mapel: 'Matematika Umum', intra: 108, p5: 36, total: 144, mingguan: 4, kategori: 'Umum' },
-    { no: 5, mapel: 'Bahasa Inggris', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
-    { no: 6, mapel: 'PJOK', intra: 72, p5: 36, total: 108, mingguan: 3, kategori: 'Umum' },
-    { no: 7, mapel: 'Sejarah', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
-    { no: 8, mapel: 'Seni Budaya', intra: 54, p5: 18, total: 72, mingguan: 2, kategori: 'Umum' },
-    { no: 9, mapel: 'Mata Pelajaran Pilihan 1 (e.g., Fisika / Sosiologi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
-    { no: 10, mapel: 'Mata Pelajaran Pilihan 2 (e.g., Kimia / Ekonomi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
-    { no: 11, mapel: 'Mata Pelajaran Pilihan 3 (e.g., Biologi / Geografi)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
-    { no: 12, mapel: 'Mata Pelajaran Pilihan 4 (e.g., Matematika Lanjut / Informatika)', intra: 180, p5: 0, total: 180, mingguan: 5, kategori: 'Pilihan' },
-    { no: 13, mapel: 'Muatan Lokal (Bahasa Jawa)', intra: 72, p5: 0, total: 72, mingguan: 2, kategori: 'Mulok' },
-  ];
-
-  const currentData = selectedPhase === 'X' ? strukturKelasX : strukturKelasXI;
+  const currentData = strukturList.filter((item) => item.fase === selectedPhase);
   const totalIntra = currentData.reduce((acc, curr) => acc + curr.intra, 0);
   const totalP5 = currentData.reduce((acc, curr) => acc + curr.p5, 0);
   const totalAll = totalIntra + totalP5;
@@ -51,10 +33,10 @@ export const StrukturKurikulumView: React.FC = () => {
             Alokasi Waktu Pembelajaran
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            Struktur Kurikulum Merdeka SMABA
+            Struktur {activeCurriculum} SMABA
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Berdasarkan Kepmendikbudristek No. 262/M/2022 dan KOSP SMAN 1 Batangan.
+            Tahun Pelajaran {activeYear} (Semester {activeSemester}) • Berdasarkan Kepmendikbudristek No. 262/M/2022 dan KOSP SMAN 1 Batangan.
           </p>
         </div>
 

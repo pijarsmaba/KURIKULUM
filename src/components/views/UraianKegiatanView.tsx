@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { ClipboardList, Calendar, CheckCircle2, Clock, ArrowRight, Filter } from 'lucide-react';
 import { CURRICULUM_ACTIVITIES } from '../../data/mockData';
-import { CurriculumActivity } from '../../types';
+import { CurriculumActivity, AcademicSettings } from '../../types';
 
-export const UraianKegiatanView: React.FC = () => {
+interface UraianKegiatanViewProps {
+  academicSettings?: AcademicSettings;
+}
+
+export const UraianKegiatanView: React.FC<UraianKegiatanViewProps> = ({ academicSettings }) => {
   const [filterCategory, setFilterCategory] = useState<string>('Semua');
   const [filterStatus, setFilterStatus] = useState<string>('Semua');
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
 
   const categories = ['Semua', 'Perencanaan', 'KBM', 'Asesmen', 'Pengembangan Guru', 'P5'];
   const statuses = ['Semua', 'Selesai', 'Sedang Berjalan', 'Mendatang'];
@@ -29,7 +35,7 @@ export const UraianKegiatanView: React.FC = () => {
             Uraian Kegiatan & Program Kerja Kurikulum
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Pelaksanaan agenda akademik tahunan Tim Kurikulum SMA Negeri 1 Batangan TA 2024/2025.
+            Pelaksanaan agenda akademik tahunan Tim Kurikulum SMA Negeri 1 Batangan TA {activeYear} (Semester {activeSemester}).
           </p>
         </div>
 

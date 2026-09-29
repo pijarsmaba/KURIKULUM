@@ -1,33 +1,33 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, BarChart3, AlertCircle, FileSpreadsheet, CheckCircle2, ChevronRight } from 'lucide-react';
+import { AcademicSettings, KaldikEvent, RmeRow } from '../../types';
+import { INITIAL_KALDIK_EVENTS, INITIAL_RME_DATA } from '../../data/mockData';
 
-export const KaldikView: React.FC = () => {
+interface KaldikViewProps {
+  academicSettings?: AcademicSettings;
+  eventsList?: KaldikEvent[];
+  rmeList?: RmeRow[];
+}
+
+export const KaldikView: React.FC<KaldikViewProps> = ({
+  academicSettings,
+  eventsList = INITIAL_KALDIK_EVENTS,
+  rmeList = INITIAL_RME_DATA,
+}) => {
   const [subTab, setSubTab] = useState<'kaldik' | 'rme' | 'rjm'>('kaldik');
+  const activeYear = academicSettings?.academicYear || '2024/2025';
+  const activeSemester = academicSettings?.semester || 'Genap';
+  const activeMaxJp = academicSettings?.maxJp || '40';
 
-  const kaldikEvents = [
-    { date: '06 Januari 2025', event: 'Hari Pertama Masuk Sekolah Semester Genap TA 2024/2025', type: 'kbm' },
-    { date: '06 - 17 Januari 2025', event: 'Verifikasi dan Supervisi Perangkat Ajar Kurikulum Merdeka', type: 'kegiatan' },
-    { date: '27 Januari 2025', event: 'Peringatan Isra Mi\'raj Nabi Muhammad SAW (Libur Nasional)', type: 'libur' },
-    { date: '29 Januari 2025', event: 'Tahun Baru Imlek 2576 Kongzili (Libur Nasional)', type: 'libur' },
-    { date: '17 - 22 Februari 2025', event: 'Simulasi dan Pendalaman Materi Ujian Sekolah Kelas XII', type: 'kegiatan' },
-    { date: '03 - 08 Maret 2025', event: 'Asesmen Sumatif Tengah Semester (ASTS) Genap', type: 'asesmen' },
-    { date: '17 - 28 Maret 2025', event: 'Asesmen Sumatif Akhir Jenjang (ASAJ / US) Kelas XII', type: 'asesmen' },
-    { date: '29 Maret - 05 April 2025', event: 'Libur Hari Raya Idul Fitri 1446 H & Cuti Bersama', type: 'libur' },
-    { date: '02 Mei 2025', event: 'Upacara Hari Pendidikan Nasional (Hardiknas)', type: 'kegiatan' },
-    { date: '05 Mei 2025', event: 'Pengumuman Kelulusan Peserta Didik Kelas XII', type: 'kegiatan' },
-    { date: '02 - 13 Juni 2025', event: 'Asesmen Sumatif Akhir Tahun (ASAT) Kelas X & XI', type: 'asesmen' },
-    { date: '20 Juni 2025', event: 'Penyerahan Buku Laporan Hasil Belajar (Rapor) Semester Genap', type: 'kegiatan' },
-    { date: '23 Juni - 12 Juli 2025', event: 'Libur Akhir Tahun Ajaran 2024/2025', type: 'libur' },
-  ];
+  const isGanjil = activeSemester === 'Ganjil';
 
-  const rmeData = [
-    { no: 1, bulan: 'Januari 2025', jmlMinggu: 5, tdkEfektif: 1, efektif: 4, ket: 'Awal KBM Genap, Libur Imlek & Isra Miraj' },
-    { no: 2, bulan: 'Februari 2025', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif Penuh, Try Out Kelas XII' },
-    { no: 3, bulan: 'Maret 2025', jmlMinggu: 4, tdkEfektif: 2, efektif: 2, ket: 'ASTS Genap & ASAJ Kelas XII, Libur Idul Fitri' },
-    { no: 4, bulan: 'April 2025', jmlMinggu: 5, tdkEfektif: 1, efektif: 4, ket: 'KBM Efektif, Halal Bihalal' },
-    { no: 5, bulan: 'Mei 2025', jmlMinggu: 4, tdkEfektif: 0, efektif: 4, ket: 'KBM Efektif, Hardiknas, Pengumuman Lulus' },
-    { no: 6, bulan: 'Juni 2025', jmlMinggu: 4, tdkEfektif: 2, efektif: 2, ket: 'ASAT Kelas X & XI, Pengolahan Rapor, Libur Smt' },
-  ];
+  // Filter events matching activeSemester or 'Semua'
+  const kaldikEvents = eventsList.filter(
+    (ev) => ev.semester === activeSemester || ev.semester === 'Semua'
+  );
+
+  // Filter RME matching activeSemester
+  const rmeData = rmeList.filter((row) => row.semester === activeSemester);
 
   const totalMinggu = rmeData.reduce((acc, c) => acc + c.jmlMinggu, 0);
   const totalTdkEfektif = rmeData.reduce((acc, c) => acc + c.tdkEfektif, 0);
@@ -83,8 +83,8 @@ export const KaldikView: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="font-bold text-slate-900 text-lg">Agenda Kalender Pendidikan Semester Genap</h3>
-              <p className="text-xs text-slate-500">Tahun Ajaran 2024/2025 • Dinas Pendidikan & Kebudayaan Provinsi Jawa Tengah</p>
+              <h3 className="font-bold text-slate-900 text-lg">Agenda Kalender Pendidikan Semester {activeSemester}</h3>
+              <p className="text-xs text-slate-500">Tahun Ajaran {activeYear} • Dinas Pendidikan & Kebudayaan Provinsi Jawa Tengah</p>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-500"></span> KBM</span>
